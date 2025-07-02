@@ -1,0 +1,2 @@
+# GitCommAI
+Code, Converse, Connect

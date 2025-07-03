@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.mutableStateSetOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Timestamp
@@ -14,7 +13,6 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.SetOptions
-import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -25,10 +23,11 @@ data class ChatMessage(
 )
 class ChatViewModel(private val sharedPreferences: SharedPreferences):State,ViewModel() {
     override var currentState: MutableState<String> = mutableStateOf("")
-    val chatList: MutableSet<LastMessage>  by lazy {  mutableStateSetOf() }
+    val chatList: MutableList<LastMessage>  by lazy {  mutableStateListOf() }
     val messagesList:MutableList<ChatMessage> by lazy { mutableStateListOf() }
     private var currentChatRoomId:MutableState<String> =  mutableStateOf("")
     private var listener:ListenerRegistration?= null
+    private var chatRoomListener:ListenerRegistration?=null
     private fun isAdmin(sender: String):Boolean{
         val userId= sharedPreferences.getString("user_id","")?:""
         return sender==userId
@@ -80,11 +79,9 @@ class ChatViewModel(private val sharedPreferences: SharedPreferences):State,View
             val userDocRef = firestore.collection("users").document(user.login)
             userDocRef.get().addOnSuccessListener {
                 if (it.exists()) {
-                    println("Hellooooo from if")
                     registrationState.value="registered"
                 }
                 else{
-                    println("Hellooooo from else")
                     registerUser(user)
                 }
             }.addOnFailureListener {
@@ -121,56 +118,6 @@ class ChatViewModel(private val sharedPreferences: SharedPreferences):State,View
                 onResult(users)
             }
             .addOnFailureListener { e -> onError(e) }
-    }
-    fun getChatRoomsSnapShot(userId: String){
-        getChatRooms(userId)
-        currentState.value = "loading"
-        listener?.remove()
-        listener=firestore.collection("users").document(userId).collection("chatroom")
-            .addSnapshotListener { result, _ ->
-                result?.documentChanges?.forEach {
-                    if (it.type==DocumentChange.Type.ADDED)
-                    getChatUserIdAndLastMessage(chatRoomId = it.document.id) { lastMessage ->
-                        chatList.add(
-                            lastMessage
-                        )
-                    }
-                }
-                currentState.value = "chatRoom"
-            }
-    }
-    private fun getChatRooms(userId: String) {
-        currentState.value = "loading"
-        chatList.clear()
-        firestore.collection("users").document(userId).collection("chatroom")
-            .get().addOnSuccessListener { result->
-                result?.documents?.forEach {
-                    getChatUserIdAndLastMessage(chatRoomId = it.id) { lastMessage ->
-                        chatList.add(
-                            lastMessage
-                        )
-                    }
-                }
-                currentState.value = "chatRoom"
-            }
-    }
-    @SuppressLint("SuspiciousIndentation")
-    private fun getChatUserIdAndLastMessage(chatRoomId: String, onSuccess: (LastMessage) -> Unit){
-        val chatRoomRef = firestore.collection("chatroom").document(chatRoomId)
-        chatRoomRef.get().addOnSuccessListener {
-            result->
-            try {
-            if(result.exists()) {
-              val lastMessage = result.toObject(LastMessage::class.java)
-                if (lastMessage != null) {
-                    onSuccess(lastMessage)
-                }
-            }
-            }
-            catch (e:Exception){
-                println("Exception from getChatUserIdAndLastMessage()"+e.message.toString())
-            }
-            }
     }
     private suspend fun checkChatRoom(chatRoomId:String, reverseChatRoomId:String):Boolean{
         try {
@@ -219,26 +166,55 @@ class ChatViewModel(private val sharedPreferences: SharedPreferences):State,View
             }
         }
     }
-    private fun getAllMessage(chatRoomId: String){
-        currentState.value="loading"
-        messagesList.clear()
-        firestore.collection("chatroom").document(chatRoomId).collection("message").orderBy("time").get().addOnSuccessListener { result->
-            result?.documents?.forEach { it ->
-                it?.let {
-                    it.toObject(ChatMessage::class.java)?.let { message->
-                        messagesList.add(message)
+    @SuppressLint("SuspiciousIndentation")
+    private fun getChatUserIdAndLastMessage(chatRoomId: String, onSuccess: (LastMessage) -> Unit){
+        val chatRoomRef = firestore.collection("chatroom").document(chatRoomId)
+        chatRoomRef.addSnapshotListener {
+                result , _->
+            try {
+                if (result != null) {
+                    if(result.exists()) {
+                        val lastMessage = result.toObject(LastMessage::class.java)
+                        if (lastMessage != null) {
+                            onSuccess(lastMessage)
+                        }
                     }
                 }
             }
-            currentState.value="messagesRetrieved"
+            catch (e:Exception){
+                println("Exception from getChatUserIdAndLastMessage()"+e.message.toString())
+            }
         }
     }
+    fun getChatRoomsSnapShot(userId: String){
+        currentState.value = "loading"
+        chatRoomListener?.remove()
+        chatRoomListener= firestore.collection("users").document(userId).collection("chatroom")
+            .addSnapshotListener { result, _ ->
+                result?.documentChanges?.forEach { it ->
+                    if (it.type==DocumentChange.Type.ADDED){
+                        getChatUserIdAndLastMessage(chatRoomId = it.document.id) { lastMessage ->
+                            val chat= chatList.find {chats-> chats.roomId==lastMessage.roomId }
+                            if (chat==null) {
+                                chatList.add(
+                                    lastMessage
+                                )
+                            }
+                            else{
+                                chatList.remove(chat)
+                                chatList.add(lastMessage)
+                            }
+                        }
+                    }
+                }
+                currentState.value = "chatRoom"
+            }
+    }
     fun getAllMessageSnapShot(chatRoomId: String){
-        getAllMessage(chatRoomId)
         currentState.value="loading"
         messagesList.clear()
         listener?.remove()
-        listener= firestore.collection("chatroom").document(chatRoomId).collection("message").addSnapshotListener {result , _ ->
+        listener= firestore.collection("chatroom").document(chatRoomId).collection("message").orderBy("time").addSnapshotListener {result , _ ->
             result?.documentChanges?.forEach { change ->
                 if (change.type == DocumentChange.Type.ADDED) {
                     val message = change.document.toObject(ChatMessage::class.java)
@@ -263,11 +239,11 @@ class ChatViewModel(private val sharedPreferences: SharedPreferences):State,View
     }
 }
 data class LastMessage(
-    val text: String?=null,
-    val sender: String?=null,
-    val time: Timestamp?=null,
+    var text: String?=null,
+    var sender: String?=null,
+    var time: Timestamp?=null,
     val users: List<String> = emptyList(),
-    val avatar_url:List<String> = emptyList(),
+    var avatar_url:List<String> = emptyList(),
     val createdAt: Timestamp?=null,
     val roomId:String?=null
 )

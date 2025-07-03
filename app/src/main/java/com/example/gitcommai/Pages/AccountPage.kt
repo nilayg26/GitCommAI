@@ -284,7 +284,7 @@ fun RepoItemCard(repo: ReposItem, enableAlertDialog :(Boolean, String)->Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = repo.name,
+                    text = if (repo.name.length>20) repo.name.substring(0,20)+"..." else repo.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )

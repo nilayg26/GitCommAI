@@ -22,7 +22,6 @@ googleGmsGoogleServices = "4.4.3"
 firebaseDatabase = "21.0.0"
 firebaseAuth = "23.2.1"
 firebaseFirestore = "25.1.4"
-firebaseMessaging = "24.1.2"
 [libraries]
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 compose = { module = "com.github.bumptech.glide:compose", version.ref = "compose" }
@@ -50,7 +49,6 @@ generativeai = { group = "com.google.ai.client.generativeai", name = "generative
 androidx-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
-firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

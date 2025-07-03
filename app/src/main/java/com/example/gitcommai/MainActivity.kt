@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -102,6 +103,13 @@ fun Navigation(
         mutableIntStateOf(0)
     }
     val token= sharedPreferences.getString("access_token","")?:""
+    val userId=sharedPreferences.getString("user_id","")?:""
+    val user_name=sharedPreferences.getString("user_name","")?:""
+    LaunchedEffect(Unit){
+        if (userId.isNotBlank()) {
+            chatViewModel.getChatRoomsSnapShot(userId)
+        }
+    }
     val startPage by remember {
         mutableStateOf(if (token.isNotBlank()){NewsPage.route}else{LoginPage.route})
     }
@@ -116,7 +124,9 @@ fun Navigation(
                 LoginPage(navController, authViewModel, animationViewModel)
             }
             composable(NewsPage.route) {
-                topBarLabel="Daily TechNews"
+                topBarLabel= if (userId.isNotBlank()){
+                    "Hello ${user_name.split(" ")[0]}!"
+                } else{"Daily TechNews" }
                 bottomBarIndex=0
                 NewsPage(
                     navController,
@@ -140,9 +150,11 @@ fun Navigation(
                 AccountPage(navController, authViewModel, animationViewModel)
             }
             composable(ChatMessage.route) {
-                topBarLabel="Chat"
+                topBarLabel="Let's Chat"
                 bottomBarIndex=-1
-                ChatMessagePage(chatViewModel)
+                ChatMessagePage(chatViewModel){
+                    topBarLabel=it
+                }
             }
         }
     }

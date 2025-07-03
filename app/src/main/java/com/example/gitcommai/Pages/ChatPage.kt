@@ -18,6 +18,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,86 +42,96 @@ import com.example.gitcommai.ViewModels.ChatViewModel
 import com.example.gitcommai.ViewModels.LastMessage
 import com.example.gitcommai.ViewModels.User
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
-
 @Composable
-fun ChatPage(navController: NavHostController,authViewModel: AuthViewModel,chatViewModel: ChatViewModel ) {
+fun ChatPage(navController: NavHostController, authViewModel: AuthViewModel, chatViewModel: ChatViewModel) {
     var searchQuery by remember { mutableStateOf("") }
-    var searchResult by remember {
-        mutableStateOf(listOf<User>())
-    }
-    var adminUser by rememberSaveable {
-        mutableStateOf(User())
-    }
-    var userLogin by rememberSaveable{
-        mutableStateOf("")
-    }
-    val coroutineScope= rememberCoroutineScope()
-    LaunchedEffect(searchQuery){
+    var searchResult by remember { mutableStateOf(listOf<User>()) }
+    var adminUser by rememberSaveable { mutableStateOf(User()) }
+    var userLogin by rememberSaveable { mutableStateOf("") }
+    val coroutineScope = rememberCoroutineScope()
+
+    // Debounce search to avoid excessive API calls
+    LaunchedEffect(searchQuery) {
         if (searchQuery.isNotBlank()) {
+            delay(300) // 300ms debounce
             chatViewModel.searchUser(searchQuery, onSuccess = { searchResult = it })
-            println(searchResult)
-        }
-        else{
-            searchResult= emptyList()
+        } else {
+            searchResult = emptyList()
         }
     }
+    LaunchedEffect(Unit) {
+        adminUser = authViewModel.getUser()
+        userLogin = adminUser.login
+    }
+    val chatList by remember { derivedStateOf { chatViewModel.chatList } }
     LaunchedEffect(Unit){
-            adminUser= authViewModel.getUser()
-            userLogin=adminUser.login
-            chatViewModel.getChatRoomsSnapShot(adminUser.login)
+        if (chatList.isEmpty()){
+            chatViewModel.getChatRoomsSnapShot(userLogin)
+        }
     }
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.padding(16.dp)) {
-            GitCommAIOutlinedTextField(searchQuery) {
-                searchQuery=it
-            }
+            GitCommAIOutlinedTextField(searchQuery) { searchQuery = it }
             LazyColumn {
-                if (userLogin.isNotBlank() && searchResult.isEmpty()) {
-                    items(chatViewModel.chatList.toMutableList()) { chat ->
-                        ChatListItem(
-                            chat, userLogin, navController,
-                            chatViewModel = chatViewModel
-                        )
-                        HorizontalDivider()
-                    }
-                }
-                else if(searchResult.isNotEmpty()){
-                    items(searchResult){user->
-                        ChatSearchItem(user){
-                            coroutineScope.launch {
-                                chatViewModel.addChatRoom(adminUser,it)
-                                searchResult= emptyList()
-                                searchQuery=""
-                            }
+                when {
+                    userLogin.isNotBlank() && searchResult.isEmpty() -> {
+                        items(
+                            items = chatList.toMutableList(),
+                        ) { chat ->
+                            ChatListItem(
+                                chat = chat,
+                                userLogin = userLogin,
+                                navController = navController,
+                                chatViewModel = chatViewModel
+                            )
+                            HorizontalDivider()
                         }
-                        HorizontalDivider()
+                    }
+                    searchResult.isNotEmpty() -> {
+                        items(
+                            items = searchResult,
+                            key = { user ->  user.login }
+                        ) { user ->
+                            ChatSearchItem(user) {
+                                coroutineScope.launch {
+                                    chatViewModel.addChatRoom(adminUser, it)
+                                    searchResult = emptyList()
+                                    searchQuery = ""
+                                }
+                            }
+                            HorizontalDivider()
+                        }
                     }
                 }
             }
         }
     }
 }
+
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun ChatSearchItem(otherUser: User,onClick:(User)->Unit){
+fun ChatSearchItem(otherUser: User, onClick: (User) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(12.dp)
-            .clickable {
-                onClick(otherUser)
-            },
+            .clickable { onClick(otherUser) },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
                 .size(48.dp)
                 .clip(CircleShape)
-        ){
-            GlideImage(model = otherUser.avatar_url,modifier = Modifier.fillMaxSize(), contentDescription = "Sender's avatar")
+        ) {
+            GlideImage(
+                model = otherUser.avatar_url,
+                modifier = Modifier.fillMaxSize(),
+                contentDescription = "Sender's avatar"
+            )
         }
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -132,9 +143,31 @@ fun ChatSearchItem(otherUser: User,onClick:(User)->Unit){
         }
     }
 }
+
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun ChatListItem(chat: LastMessage, userLogin: String, navController: NavHostController,chatViewModel: ChatViewModel) {
+fun ChatListItem(
+    chat: LastMessage,
+    userLogin: String,
+    navController: NavHostController,
+    chatViewModel: ChatViewModel
+) {
+    val otherUserIndex = remember(chat.users, userLogin) {
+        if (chat.users.getOrNull(0) != userLogin) 0 else 1
+    }
+    val otherUserName = remember(chat.users, otherUserIndex) {
+        chat.users.getOrNull(otherUserIndex) ?: ""
+    }
+    val otherUserAvatar = remember(chat.avatar_url, otherUserIndex) {
+        chat.avatar_url.getOrNull(otherUserIndex) ?: ""
+    }
+    val lastMessageText = remember(chat.sender, chat.text) {
+        "${chat.sender}: ${chat.text}"
+    }
+    val formattedTime = remember(chat.time) {
+        formatTimestamp(chat.time)
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -151,20 +184,24 @@ fun ChatListItem(chat: LastMessage, userLogin: String, navController: NavHostCon
             modifier = Modifier
                 .size(48.dp)
                 .clip(CircleShape)
-        ){
-            GlideImage(model =  if(chat.users[0]!=userLogin){chat.avatar_url[0]}else{chat.avatar_url[1]},modifier = Modifier.fillMaxSize(), contentDescription = "Sender's avatar")
+        ) {
+            GlideImage(
+                model = otherUserAvatar,
+                modifier = Modifier.fillMaxSize(),
+                contentDescription = "Sender's avatar"
+            )
         }
 
         Spacer(modifier = Modifier.width(12.dp))
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = if(chat.users[0]!=userLogin){chat.users[0]}else{chat.users[1]},
+                text = otherUserName,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = chat.sender+": "+ chat.text,
+                text = lastMessageText,
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -172,17 +209,15 @@ fun ChatListItem(chat: LastMessage, userLogin: String, navController: NavHostCon
         }
 
         Text(
-            text = formatTimestamp(chat.time),
+            text = formattedTime,
             style = MaterialTheme.typography.bodySmall,
             color = Color.Gray
         )
     }
 }
+
+private val timestampFormatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
+
 fun formatTimestamp(timestamp: Timestamp?): String {
-    return if (timestamp != null) {
-        val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
-        sdf.format(timestamp.toDate())
-    } else {
-        ""
-    }
+    return timestamp?.let { timestampFormatter.format(it.toDate()) } ?: ""
 }

@@ -31,13 +31,16 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
@@ -46,40 +49,36 @@ import com.example.gitcommai.ViewModels.ChatMessage
 import com.example.gitcommai.ViewModels.ChatViewModel
 import com.example.gitcommai.ViewModels.User
 import com.google.firebase.Timestamp
-import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Locale
+import kotlinx.coroutines.delay
 
 @Composable
-fun ChatMessagePage(chatViewModel: ChatViewModel){
+fun ChatMessagePage(chatViewModel: ChatViewModel,onTitleChange: (String) -> Unit) {
     val listState = rememberLazyListState()
     var inputText by remember { mutableStateOf("") }
     var isTyping by remember { mutableStateOf(false) }
-    var adminUser by rememberSaveable {
-        mutableStateOf(User())
-    }
-    var otherUser by rememberSaveable {
-        mutableStateOf(User())
-    }
+    var adminUser by rememberSaveable { mutableStateOf(User()) }
+    var otherUser by rememberSaveable { mutableStateOf(User()) }
+    val currentUserId = remember { chatViewModel.getUserId() }
+    val currentChatRoomId = remember { chatViewModel.getCurrentChatRoomId() }
+    val messagesList by remember { derivedStateOf { chatViewModel.messagesList } }
+
     LaunchedEffect(Unit) {
-        launch {
-            chatViewModel.getAllMessageSnapShot(chatViewModel.getCurrentChatRoomId())
-        }
+        println("Only called once")
+        chatViewModel.getAllMessageSnapShot(currentChatRoomId)
         val adminId = chatViewModel.getUserId()
-        val otherUserId = chatViewModel.getOtherUserId(chatViewModel.getCurrentChatRoomId())
+        val otherUserId = chatViewModel.getOtherUserId(currentChatRoomId)
         adminUser = chatViewModel.getUser(adminId) ?: User()
         otherUser = chatViewModel.getUser(otherUserId) ?: User()
     }
-    LaunchedEffect(chatViewModel.messagesList.size) {
-        println("ChatList is"+chatViewModel.messagesList.toString())
-        if (chatViewModel.messagesList.isNotEmpty()) {
-            listState.animateScrollToItem(chatViewModel.messagesList.size - 1)
+    LaunchedEffect(messagesList.size) {
+        println("ChatList is $messagesList")
+        if (messagesList.isNotEmpty()) {
+            delay(50)
+            listState.animateScrollToItem(messagesList.size - 1)
         }
     }
-    Surface(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
+
+    Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -88,167 +87,223 @@ fun ChatMessagePage(chatViewModel: ChatViewModel){
             LazyColumn(
                 state = listState,
                 modifier = Modifier
-                    .weight(1f) // This is crucial - takes remaining space
+                    .weight(1f)
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
                 contentPadding = PaddingValues(vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(chatViewModel.messagesList) { message ->
-                    ChatMessageItem(message,chatViewModel= chatViewModel, adminUser = adminUser, otherUser = otherUser)
+                items(
+                    items = messagesList,
+                    key = { message -> message.time?.toDate()?.time ?: System.currentTimeMillis() }
+                ) { message ->
+                    ChatMessageItem(
+                        message = message,
+                        currentUserId = currentUserId,
+                        adminUser = adminUser,
+                        otherUser = otherUser
+                    )
                 }
             }
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shadowElevation = 8.dp,
-                color = MaterialTheme.colorScheme.surface
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.Bottom
-                ) {
-                    OutlinedTextField(
-                        value = inputText,
-                        onValueChange = { inputText = it },
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(end = 12.dp),
-                        placeholder = {
-                            Text("Type to Chat...")
-                        },
-                        shape = RoundedCornerShape(24.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                        )
-                    )
-                    AnimatedVisibility(!isTyping) {
-                        FloatingActionButton(
-                            onClick = {
-                                if (inputText.isNotBlank()) {
-                                   chatViewModel.sendMessage(chatRoomId = chatViewModel.getCurrentChatRoomId(),
-                                       message= ChatMessage(text = inputText, sender = chatViewModel.getUserId(), Timestamp.now()))
-                                    inputText=""
-                                }
-                            },
-                            modifier = Modifier.size(48.dp),
-                            containerColor = if (inputText.isNotBlank())
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.surfaceVariant
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.Send,
-                                contentDescription = "Send",
-                                modifier = Modifier.size(20.dp),
-                                tint = if (inputText.isNotBlank())
-                                    MaterialTheme.colorScheme.onPrimary
-                                else
-                                    MaterialTheme.colorScheme.onSurfaceVariant
+
+            MessageInputSection(
+                inputText = inputText,
+                onInputChange = { inputText = it },
+                isTyping = isTyping,
+                onSendMessage = {
+                    if (inputText.isNotBlank()) {
+                        chatViewModel.sendMessage(
+                            chatRoomId = currentChatRoomId,
+                            message = ChatMessage(
+                                text = inputText,
+                                sender = currentUserId,
+                                time = Timestamp.now()
                             )
-                        }
+                        )
+                        inputText = ""
                     }
                 }
-            }
+            )
         }
     }
 }
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun ChatMessageItem(
-    message: ChatMessage,
-    modifier: Modifier = Modifier,
-    chatViewModel: ChatViewModel,
-    adminUser: User,
-    otherUser: User
+private fun MessageInputSection(
+    inputText: String,
+    onInputChange: (String) -> Unit,
+    isTyping: Boolean,
+    onSendMessage: () -> Unit
 ) {
-    val dateFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
-    val userid = remember {
-        mutableStateOf(chatViewModel.getUserId())
-    }
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = if ( message.sender==userid.value) Arrangement.End else Arrangement.Start
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shadowElevation = 8.dp,
+        color = MaterialTheme.colorScheme.surface
     ) {
-        if (message.sender!=chatViewModel.getUserId()) {
-            Surface(
-                modifier = Modifier.size(32.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    // Replace with user avatar if needed
-                    GlideImage(
-                        model = otherUser.avatar_url,
-                        contentDescription = "user avatar",
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.Bottom
+        ) {
+            OutlinedTextField(
+                value = inputText,
+                onValueChange = onInputChange,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 12.dp),
+                placeholder = { Text("Type to Chat...") },
+                shape = RoundedCornerShape(24.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                )
+            )
 
-        Column(modifier = Modifier.widthIn(max = 280.dp)) {
-            Surface(
-                shape = RoundedCornerShape(
-                    topStart = if ( message.sender==userid.value) 20.dp else 4.dp,
-                    topEnd = if ( message.sender==userid.value) 4.dp else 20.dp,
-                    bottomStart = 20.dp,
-                    bottomEnd = 20.dp
-                ),
-                shadowElevation = if (message.sender != userid.value) 2.dp else 0.dp,
-                color = if (message.sender==userid.value)
-                    MaterialTheme.colorScheme.primary
-                else
-                    MaterialTheme.colorScheme.surfaceVariant
-            ) {
-                SelectionContainer {
-                    Text(
-                        text = message.text,
-                        modifier = Modifier
-                            .padding(12.dp),
-                        fontSize = 14.sp,
-                        lineHeight = 20.sp,
-                        color = if ( message.sender==userid.value)
+            AnimatedVisibility(!isTyping) {
+                FloatingActionButton(
+                    onClick = onSendMessage,
+                    modifier = Modifier.size(48.dp),
+                    containerColor = if (inputText.isNotBlank())
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.surfaceVariant
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Send,
+                        contentDescription = "Send",
+                        modifier = Modifier.size(20.dp),
+                        tint = if (inputText.isNotBlank())
                             MaterialTheme.colorScheme.onPrimary
                         else
                             MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
+        }
+    }
+}
+@Composable
+private fun ChatMessageItem(
+    message: ChatMessage,
+    currentUserId: String,
+    adminUser: User,
+    otherUser: User,
+    modifier: Modifier = Modifier
+) {
+    // Memoize computed values to avoid recalculation
+    val isCurrentUser = remember(message.sender, currentUserId) {
+        message.sender == currentUserId
+    }
+    val formattedTime = remember(message.time) {
+        formatTimestamp(message.time)
+    }
+    val avatarUrl = remember(isCurrentUser, adminUser.avatar_url, otherUser.avatar_url) {
+        if (isCurrentUser) adminUser.avatar_url else otherUser.avatar_url
+    }
+
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = if (isCurrentUser) Arrangement.End else Arrangement.Start
+    ) {
+        // Left avatar (for other user's messages)
+        if (!isCurrentUser) {
+            if (avatarUrl != null) {
+                AvatarImage(
+                    imageUrl = avatarUrl,
+                    size = 32.dp,
+                    contentDescription = "Other user avatar"
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+        }
+
+        Column(modifier = Modifier.widthIn(max = 280.dp)) {
+            MessageBubble(
+                message = message,
+                isCurrentUser = isCurrentUser
+            )
 
             Text(
-                text = dateFormatter.format(message.time?.toDate() ?: Timestamp.now()),
+                text = formattedTime,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
             )
         }
 
-        if (message.sender==chatViewModel.getUserId()) {
+        // Right avatar (for current user's messages)
+        if (isCurrentUser) {
             Spacer(modifier = Modifier.width(8.dp))
-            Surface(
-                modifier = Modifier.size(32.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primary
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    GlideImage(
-                        model = adminUser.avatar_url,
-                        contentDescription = "user avatar",
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+            if (avatarUrl != null) {
+                AvatarImage(
+                    imageUrl = avatarUrl,
+                    size = 32.dp,
+                    contentDescription = "Current user avatar"
+                )
             }
         }
     }
 }
+
+@Composable
+private fun MessageBubble(
+    message: ChatMessage,
+    isCurrentUser: Boolean
+) {
+    Surface(
+        shape = RoundedCornerShape(
+            topStart = if (isCurrentUser) 20.dp else 4.dp,
+            topEnd = if (isCurrentUser) 4.dp else 20.dp,
+            bottomStart = 20.dp,
+            bottomEnd = 20.dp
+        ),
+        shadowElevation = if (!isCurrentUser) 2.dp else 0.dp,
+        color = if (isCurrentUser)
+            MaterialTheme.colorScheme.primary
+        else
+            MaterialTheme.colorScheme.surfaceVariant
+    ) {
+        SelectionContainer {
+            Text(
+                text = message.text,
+                modifier = Modifier.padding(12.dp),
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
+                color = if (isCurrentUser)
+                    MaterialTheme.colorScheme.onPrimary
+                else
+                    MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalGlideComposeApi::class)
+@Composable
+private fun AvatarImage(
+    imageUrl: String,
+    size: Dp,
+    contentDescription: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.size(size),
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.primaryContainer
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Use key to force recomposition when URL changes
+            key(imageUrl) {
+                GlideImage(
+                    model = imageUrl.ifBlank { null },
+                    contentDescription = contentDescription,
+                    modifier = Modifier.fillMaxSize())
+            }
+        }
+    }
+}
+

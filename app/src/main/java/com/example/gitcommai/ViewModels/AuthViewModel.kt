@@ -1,5 +1,6 @@
 package com.example.gitcommai.ViewModels
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.SharedPreferences
 import android.os.Parcel
@@ -18,6 +19,7 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.parseQueryString
 import kotlinx.coroutines.launch
 
 data class User(
@@ -79,9 +81,7 @@ class AuthViewModel(private var sharedPreferences: SharedPreferences) :MainModel
             return _user
         }
     }
-    fun getUserId():String{
-        return sharedPreferences.getString("user_id","")?:""
-    }
+   @SuppressLint("SuspiciousIndentation")
    fun login(activity: Activity){
         currentState.value="loading"
         val provider= OAuthProvider.newBuilder("github.com")
@@ -97,7 +97,6 @@ class AuthViewModel(private var sharedPreferences: SharedPreferences) :MainModel
                                _user = gson.fromJson(userJson, User::class.java)
                                ChatViewModel.checkOrRegisterUser(_user)
                                if (!_user.name.isNullOrBlank()) {
-                                   println("Helloooo")
                                    sharedPreferences.edit().putString("user_name", _user.name)
                                        .apply()
                                }
@@ -137,7 +136,11 @@ class AuthViewModel(private var sharedPreferences: SharedPreferences) :MainModel
     suspend fun getRepos(): Repos {
         repoState.value="loading"
         val json= _user.repos_url?.let {
-            client.get(it){
+            client.get("https://api.github.com/user/repos"){
+                url {
+                    parameters.append("sort","updated")
+                    parameters.append("visibility","all")
+                }
                 headers{
                     append("Authorization","Bearer ${sharedPreferences.getString("access_token","")}")
                 }

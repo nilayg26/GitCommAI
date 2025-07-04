@@ -316,6 +316,8 @@ class ChatViewModel(private val sharedPreferences: SharedPreferences):State,View
         }
     }
     fun signOut(){
+        chatList.clear()
+        messagesList.clear()
         encryptionKeys=null
         chatRoomListener=null
         listener=null

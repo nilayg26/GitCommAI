@@ -170,7 +170,7 @@ fun ArticleCard(article: Article, onClick: (String) -> Unit) {
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = article.publishedAt.split("T")[0],
+                    text = reformatDate(article.publishedAt.split("T")[0]),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -178,3 +178,9 @@ fun ArticleCard(article: Article, onClick: (String) -> Unit) {
         }
     }
 }
+fun reformatDate(date: String): String {
+    val parts = date.split("-")
+    val (year, month, day) = parts
+    return "$day-$month-$year"
+}
+

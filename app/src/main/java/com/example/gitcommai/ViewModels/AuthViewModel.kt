@@ -19,7 +19,6 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.parseQueryString
 import kotlinx.coroutines.launch
 
 data class User(
@@ -30,7 +29,7 @@ data class User(
     val public_repos:Int?=null,
     val followers:Int=0,
     val following:Int=0,
-    val repos_url:String?=null
+    val repos_url:String?=null,
 ): Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString() ?: "",
@@ -69,16 +68,21 @@ class AuthViewModel(private var sharedPreferences: SharedPreferences) :MainModel
        return ""
     }
     override val client:HttpClient by lazy {   HttpClient(CIO)}
-    private lateinit var _user:User
+    private var _user=User()
     private val gson by lazy {  Gson()}
     suspend fun getUser():User{
-        if (::_user.isInitialized) {
-            return _user.copy()
+        try {
+            if (_user.login.isNotBlank()) {
+                return _user.copy()
+            } else {
+                val token = sharedPreferences.getString("access_token", "") ?: ""
+                _user = gson.fromJson(getUser(token), User::class.java)
+                return _user
+            }
         }
-        else{
-            val token= sharedPreferences.getString("access_token","")?:""
-            _user= gson.fromJson(getUser(token),User::class.java)
-            return _user
+        catch (e:Exception){
+            println(e.message)
+            return User()
         }
     }
    @SuppressLint("SuspiciousIndentation")
@@ -105,7 +109,6 @@ class AuthViewModel(private var sharedPreferences: SharedPreferences) :MainModel
                                    sharedPreferences.edit().putString("user_name", _user.login)
                                        .apply()
                                }
-                               ChatViewModel.checkOrRegisterUser(_user)
                                sharedPreferences.edit().putString("user_id",_user.login).apply()
                                sharedPreferences.edit().putString("user_avatar",_user.avatar_url).apply()
                                currentState.value = "access_token_retrieved"
@@ -133,25 +136,37 @@ class AuthViewModel(private var sharedPreferences: SharedPreferences) :MainModel
             ""
         }
     }
-    suspend fun getRepos(): Repos {
+    suspend fun getRepos(): Repos? {
         repoState.value="loading"
-        val json= _user.repos_url?.let {
-            client.get("https://api.github.com/user/repos"){
-                url {
-                    parameters.append("sort","updated")
-                    parameters.append("visibility","all")
-                }
-                headers{
-                    append("Authorization","Bearer ${sharedPreferences.getString("access_token","")}")
-                }
-            }.bodyAsText()
-        }?:""
-        repoState.value="retrieved"
-        return gson.fromJson(json, Repos::class.java)
+        try {
+            val json = _user.repos_url?.let {
+                client.get("https://api.github.com/user/repos") {
+                    url {
+                        parameters.append("sort", "updated")
+                        parameters.append("visibility", "all")
+                    }
+                    headers {
+                        append(
+                            "Authorization",
+                            "Bearer ${sharedPreferences.getString("access_token", "")}"
+                        )
+                    }
+                }.bodyAsText()
+            } ?: ""
+            repoState.value="retrieved"
+            return gson.fromJson(json, Repos::class.java)
+        }
+        catch (e:Exception){
+            println(e.printStackTrace())
+            return null
+        }
     }
-    fun signOut(){
+    fun signOut(chatViewModel: ChatViewModel){
+        chatViewModel.signOut()
+        _user=User()
         sharedPreferences.edit().clear().apply()
         firebaseAuth.signOut()
         currentState.value="signOut"
     }
+
 }

@@ -98,7 +98,7 @@ fun NewsPage(navController: NavHostController,newsViewModel: NewsViewModel, anim
            }
        }
        else if(showNews){
-           Text(" Could not fetch News at the moment, Contact email nilay.gupta9896knp@gmail.com")
+           Text(" Could not fetch News at the moment 🥲, \"Check your internet and restart the app\"")
        }
    }
     }

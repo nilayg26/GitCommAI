@@ -1,12 +1,15 @@
 package com.example.gitcommai.ViewModels
 import android.annotation.SuppressLint
 import android.content.SharedPreferences
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.gitcommai.BuildConfig
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FieldValue
@@ -28,6 +31,8 @@ class ChatViewModel(private val sharedPreferences: SharedPreferences):State,View
     private var currentChatRoomId:MutableState<String> =  mutableStateOf("")
     private var listener:ListenerRegistration?= null
     private var chatRoomListener:ListenerRegistration?=null
+    private var encryptionKeys:List<Int>?=null
+    private var rsaData:List<Int>?=null
     private fun isAdmin(sender: String):Boolean{
         val userId= sharedPreferences.getString("user_id","")?:""
         return sender==userId
@@ -40,6 +45,9 @@ class ChatViewModel(private val sharedPreferences: SharedPreferences):State,View
         return sharedPreferences.getString("user_id","")?:""
     }
     fun setCurrentChatRoomId(chatRoomId: String){
+        val list = getPrivateAndPublicKey(chatRoomId)
+        encryptionKeys=list[0]
+        rsaData=list[1]
         currentChatRoomId.value=chatRoomId
     }
     fun getCurrentChatRoomId():String{
@@ -58,17 +66,34 @@ class ChatViewModel(private val sharedPreferences: SharedPreferences):State,View
         }
     }
     companion object {
+        fun getPrivateAndPublicKey(chatRoomId: String):List<List<Int>>{
+          val privateKeys=BuildConfig.privateKeys.split(" ")
+           val publicKeys=BuildConfig.publicKeys.split(" ")
+
+          val sum= chatRoomId.fold(0) { acc, char ->
+              acc + char.code
+          }
+            println(sum)
+            val privateKey= privateKeys[sum%privateKeys.size].toInt()
+            val publicKey= publicKeys[sum%publicKeys.size].toInt()
+            val rsaValues= BuildConfig.rsaData.split(" ")
+            return listOf(
+                listOf(privateKey, publicKey),
+                rsaValues.fold(mutableListOf()) { acc, it ->
+                    acc.add(it.toInt())
+                    acc
+                }
+            )
+        }
         private val firestore by lazy {
             FirebaseFirestore.getInstance()
         }
         var registrationState: MutableState<String> = mutableStateOf("notRegistered")
         private fun registerUser(user: User, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit = {}) {
-            println("User going to firebase is: $user")
             val userDocRef = firestore.collection("users").document(user.login)
             userDocRef.set(user)
                 .addOnSuccessListener {
                     registrationState.value="registered"
-                    println("Nilayyyy : Here is registered value")
                 }
                 .addOnFailureListener {
                     e ->
@@ -191,7 +216,7 @@ class ChatViewModel(private val sharedPreferences: SharedPreferences):State,View
         chatRoomListener?.remove()
         chatRoomListener= firestore.collection("users").document(userId).collection("chatroom")
             .addSnapshotListener { result, _ ->
-                result?.documentChanges?.forEach { it ->
+                result?.documentChanges?.forEach {
                     if (it.type==DocumentChange.Type.ADDED){
                         getChatUserIdAndLastMessage(chatRoomId = it.document.id) { lastMessage ->
                             val chat= chatList.find {chats-> chats.roomId==lastMessage.roomId }
@@ -211,6 +236,7 @@ class ChatViewModel(private val sharedPreferences: SharedPreferences):State,View
             }
     }
     fun getAllMessageSnapShot(chatRoomId: String){
+        checkEncryptionKeys()
         currentState.value="loading"
         messagesList.clear()
         listener?.remove()
@@ -229,6 +255,7 @@ class ChatViewModel(private val sharedPreferences: SharedPreferences):State,View
         }
     }
     fun sendMessage(chatRoomId: String, message: ChatMessage, onSent: () -> Unit = {}, onError: (Exception) -> Unit = {}) {
+        checkEncryptionKeys()
         currentState.value="loading"
         val docRef=firestore.collection("chatroom").document(chatRoomId)
         docRef.set(message, SetOptions.merge())
@@ -236,6 +263,62 @@ class ChatViewModel(private val sharedPreferences: SharedPreferences):State,View
         messageRef.set(message)
             .addOnSuccessListener { currentState.value="delivered";onSent() }
             .addOnFailureListener { e -> onError(e) }
+    }
+    fun decodeMessage(cipherText: String,chatRoomId: String=""):String{
+        val cipherList = cipherText.split(" ")
+        if (chatRoomId.isEmpty()) {
+            checkEncryptionKeys()
+            return cipherList.fold("") { acc, cipher ->
+                if (cipher != "") {
+                    val deCipher =
+                        modPow(cipher.toInt(), encryptionKeys!![0], rsaData!![0]).toChar()
+                    acc + deCipher
+                } else {
+                    acc
+                }
+            }
+        }
+        else{
+            val privateKeys=BuildConfig.privateKeys.split(" ")
+            val sum= chatRoomId.fold(0) { acc, char ->
+                acc + char.code
+            }
+            val privateKey= privateKeys[sum%privateKeys.size].toInt()
+            return cipherList.fold("") { acc, cipher ->
+                if (cipher != "") {
+                    val deCipher =
+                        modPow(cipher.toInt(), privateKey, BuildConfig.rsaData.split(" ")[0].toInt()).toChar()
+                    acc + deCipher
+                } else {
+                    acc
+                }
+            }
+
+        }
+    }
+    fun encodeMessage(text: String):String{
+        checkEncryptionKeys()
+        return text.fold(""){
+                acc, plainText ->
+            val encoded = modPow(plainText.code,encryptionKeys!![1], rsaData!![0])
+            "$acc$encoded "
+        }
+    }
+    private fun checkEncryptionKeys(){
+        if (encryptionKeys==null || rsaData==null ) {
+            val list = getPrivateAndPublicKey(chatRoomId = getCurrentChatRoomId())
+            if (encryptionKeys == null) {
+                encryptionKeys = list[0]
+            }
+            if (rsaData == null) {
+                rsaData = list[1]
+            }
+        }
+    }
+    fun signOut(){
+        encryptionKeys=null
+        chatRoomListener=null
+        listener=null
     }
 }
 data class LastMessage(
@@ -247,3 +330,18 @@ data class LastMessage(
     val createdAt: Timestamp?=null,
     val roomId:String?=null
 )
+private fun modPow(x: Int, y: Int, n: Int): Int {
+    var base = x % n
+    var exponent = y
+    var result = 1
+
+    while (exponent > 0) {
+        if ((exponent and 1) == 1) {
+            result = ((result.toLong() * base) % n).toInt()
+        }
+        base = ((base.toLong() * base) % n).toInt()
+        exponent = exponent shr 1
+    }
+
+    return result
+}

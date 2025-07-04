@@ -147,7 +147,7 @@ fun Navigation(
             composable(AccountPage.route) {
                 topBarLabel="Account"
                 bottomBarIndex=3
-                AccountPage(navController, authViewModel, animationViewModel)
+                AccountPage(navController, authViewModel, animationViewModel,chatViewModel)
             }
             composable(ChatMessage.route) {
                 topBarLabel="Let's Chat"

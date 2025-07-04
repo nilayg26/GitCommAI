@@ -11,6 +11,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,12 +46,12 @@ fun LoginPage(
     var isLoading by remember {
         mutableStateOf(false)
     }
-    var loginAnimation by rememberSaveable {
-        mutableStateOf("")
+    val loginAnimation by remember {
+        derivedStateOf { animationViewModel.currentAnimation }
     }
     LaunchedEffect(Unit){
         coroutineScope.launch {
-            loginAnimation = animationViewModel.getData(key="login")
+           animationViewModel.getData(key="login")
         }
     }
     LaunchedEffect(authViewModel.currentState.value , ChatViewModel.registrationState){
@@ -63,8 +64,8 @@ fun LoginPage(
             Surface(modifier = Modifier.fillMaxSize()) {
                 Column(modifier = Modifier.fillMaxSize().animateContentSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                         Spacer(Modifier.height(20.dp))
-                        AnimatedVisibility(loginAnimation.isNotBlank()) {
-                            AnimationLottie(size = 370, jsonStr = loginAnimation)
+                        AnimatedVisibility(loginAnimation.value.isNotBlank()) {
+                            AnimationLottie(size = 370, jsonStr = loginAnimation.value)
                         }
                         Text(
                             "GitCommAI\n",

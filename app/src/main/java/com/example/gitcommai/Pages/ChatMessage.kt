@@ -1,6 +1,7 @@
 package com.example.gitcommai.Pages
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -73,7 +74,7 @@ fun ChatMessagePage(chatViewModel: ChatViewModel,onTitleChange: (String) -> Unit
     LaunchedEffect(messagesList.size) {
         println("ChatList is $messagesList")
         if (messagesList.isNotEmpty()) {
-            delay(50)
+            delay(500)
             listState.animateScrollToItem(messagesList.size - 1)
         }
     }
@@ -101,11 +102,11 @@ fun ChatMessagePage(chatViewModel: ChatViewModel,onTitleChange: (String) -> Unit
                         message = message,
                         currentUserId = currentUserId,
                         adminUser = adminUser,
-                        otherUser = otherUser
+                        otherUser = otherUser,
+                        chatViewModel = chatViewModel
                     )
                 }
             }
-
             MessageInputSection(
                 inputText = inputText,
                 onInputChange = { inputText = it },
@@ -115,7 +116,7 @@ fun ChatMessagePage(chatViewModel: ChatViewModel,onTitleChange: (String) -> Unit
                         chatViewModel.sendMessage(
                             chatRoomId = currentChatRoomId,
                             message = ChatMessage(
-                                text = inputText,
+                                text = chatViewModel.encodeMessage(inputText),
                                 sender = currentUserId,
                                 time = Timestamp.now()
                             )
@@ -135,11 +136,6 @@ private fun MessageInputSection(
     isTyping: Boolean,
     onSendMessage: () -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shadowElevation = 8.dp,
-        color = MaterialTheme.colorScheme.surface
-    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -181,7 +177,6 @@ private fun MessageInputSection(
                 }
             }
         }
-    }
 }
 @Composable
 private fun ChatMessageItem(
@@ -189,7 +184,8 @@ private fun ChatMessageItem(
     currentUserId: String,
     adminUser: User,
     otherUser: User,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    chatViewModel: ChatViewModel
 ) {
     // Memoize computed values to avoid recalculation
     val isCurrentUser = remember(message.sender, currentUserId) {
@@ -203,10 +199,9 @@ private fun ChatMessageItem(
     }
 
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().animateContentSize(),
         horizontalArrangement = if (isCurrentUser) Arrangement.End else Arrangement.Start
     ) {
-        // Left avatar (for other user's messages)
         if (!isCurrentUser) {
             if (avatarUrl != null) {
                 AvatarImage(
@@ -221,7 +216,8 @@ private fun ChatMessageItem(
         Column(modifier = Modifier.widthIn(max = 280.dp)) {
             MessageBubble(
                 message = message,
-                isCurrentUser = isCurrentUser
+                isCurrentUser = isCurrentUser,
+                chatViewModel = chatViewModel
             )
 
             Text(
@@ -249,7 +245,8 @@ private fun ChatMessageItem(
 @Composable
 private fun MessageBubble(
     message: ChatMessage,
-    isCurrentUser: Boolean
+    isCurrentUser: Boolean,
+    chatViewModel: ChatViewModel
 ) {
     Surface(
         shape = RoundedCornerShape(
@@ -266,7 +263,7 @@ private fun MessageBubble(
     ) {
         SelectionContainer {
             Text(
-                text = message.text,
+                text = chatViewModel.decodeMessage(message.text),
                 modifier = Modifier.padding(12.dp),
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
@@ -296,13 +293,14 @@ private fun AvatarImage(
             contentAlignment = Alignment.Center,
             modifier = Modifier.fillMaxSize()
         ) {
-            // Use key to force recomposition when URL changes
-            key(imageUrl) {
-                GlideImage(
-                    model = imageUrl.ifBlank { null },
-                    contentDescription = contentDescription,
-                    modifier = Modifier.fillMaxSize())
-            }
+                key(imageUrl) {
+                    GlideImage(
+                        model = imageUrl.ifBlank { null },
+                        contentDescription = contentDescription,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
         }
     }
 }

@@ -1,4 +1,5 @@
 package com.example.gitcommai.Pages
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,7 +66,12 @@ fun ChatPage(navController: NavHostController, authViewModel: AuthViewModel, cha
     }
     LaunchedEffect(Unit) {
         adminUser = authViewModel.getUser()
-        userLogin = adminUser.login
+        if (adminUser?.login==null){
+            userLogin=""
+        }
+        else{
+            userLogin=adminUser.login
+        }
     }
     val chatList by remember { derivedStateOf { chatViewModel.chatList } }
     LaunchedEffect(Unit){
@@ -73,44 +79,46 @@ fun ChatPage(navController: NavHostController, authViewModel: AuthViewModel, cha
             chatViewModel.getChatRoomsSnapShot(userLogin)
         }
     }
-    Surface(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            GitCommAIOutlinedTextField(searchQuery) { searchQuery = it }
-            LazyColumn {
-                when {
-                    userLogin.isNotBlank() && searchResult.isEmpty() -> {
-                        items(
-                            items = chatList.toMutableList(),
-                        ) { chat ->
-                            ChatListItem(
-                                chat = chat,
-                                userLogin = userLogin,
-                                navController = navController,
-                                chatViewModel = chatViewModel
-                            )
-                            HorizontalDivider()
-                        }
-                    }
-                    searchResult.isNotEmpty() -> {
-                        items(
-                            items = searchResult,
-                            key = { user ->  user.login }
-                        ) { user ->
-                            ChatSearchItem(user) {
-                                coroutineScope.launch {
-                                    chatViewModel.addChatRoom(adminUser, it)
-                                    searchResult = emptyList()
-                                    searchQuery = ""
-                                }
+        Surface(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                GitCommAIOutlinedTextField(searchQuery) { searchQuery = it }
+                LazyColumn(modifier = Modifier.animateContentSize()) {
+                    when {
+                        userLogin.isNotBlank() && searchResult.isEmpty() -> {
+                            items(
+                                items = chatList.sortedByDescending { it.time },
+                            ) { chat ->
+                                ChatListItem(
+                                    chat = chat,
+                                    userLogin = userLogin,
+                                    navController = navController,
+                                    chatViewModel = chatViewModel
+                                )
+                                HorizontalDivider()
                             }
-                            HorizontalDivider()
+                        }
+
+                        searchResult.isNotEmpty() -> {
+                            items(
+                                items = searchResult,
+                                key = { user -> user.login },
+                            ) { user ->
+                                ChatSearchItem(user) {
+                                    coroutineScope.launch {
+                                        chatViewModel.addChatRoom(adminUser, it)
+                                        searchResult = emptyList()
+                                        searchQuery = ""
+                                    }
+                                }
+                                HorizontalDivider()
+                            }
                         }
                     }
                 }
             }
         }
     }
-}
+
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
@@ -162,20 +170,24 @@ fun ChatListItem(
         chat.avatar_url.getOrNull(otherUserIndex) ?: ""
     }
     val lastMessageText = remember(chat.sender, chat.text) {
-        "${chat.sender}: ${chat.text}"
+        "${chat.sender}: ${chat.text?.let { chat.roomId?.let { it1 -> chatViewModel.decodeMessage(it, chatRoomId = it1) } }}"
     }
     val formattedTime = remember(chat.time) {
         formatTimestamp(chat.time)
     }
-
+    val coroutineScope = rememberCoroutineScope()
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(12.dp)
             .clickable {
-                navController.navigate(ChatMessage.route) {
-                    chat.roomId?.let { chatViewModel.setCurrentChatRoomId(chatRoomId = it) }
-                    launchSingleTop = true
+                coroutineScope.launch {
+                    delay(50)
+                    navController.navigate(ChatMessage.route) {
+                        chat.roomId?.let { chatViewModel.setCurrentChatRoomId(chatRoomId = it) }
+                        launchSingleTop = true
+                    }
+                    delay(50)
                 }
             },
         verticalAlignment = Alignment.CenterVertically

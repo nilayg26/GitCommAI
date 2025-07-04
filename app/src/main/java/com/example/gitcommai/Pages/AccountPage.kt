@@ -53,6 +53,7 @@ import com.example.gitcommai.R
 import com.example.gitcommai.RepoClasses.ReposItem
 import com.example.gitcommai.ViewModels.AnimationViewModel
 import com.example.gitcommai.ViewModels.AuthViewModel
+import com.example.gitcommai.ViewModels.ChatViewModel
 import com.example.gitcommai.ViewModels.User
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -67,7 +68,12 @@ data class AlertDialogInfo(
 @SuppressLint("MutableCollectionMutableState", "UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun AccountPage(navController:NavHostController,authViewModel:AuthViewModel,animationViewModel: AnimationViewModel) {
+fun AccountPage(
+    navController: NavHostController,
+    authViewModel: AuthViewModel,
+    animationViewModel: AnimationViewModel,
+    chatViewModel: ChatViewModel
+) {
     val context = LocalContext.current
     var alertDialogInfo= remember {
         AlertDialogInfo( onConfirmationRequest = {})
@@ -98,7 +104,12 @@ fun AccountPage(navController:NavHostController,authViewModel:AuthViewModel,anim
         val job1 = launch {
             user.value = authViewModel.getUser()
             if (repos.value.isEmpty()) {
-                repos.value = authViewModel.getRepos()
+                try {
+                    repos.value = authViewModel.getRepos()!!
+                }
+                catch (e:Exception){
+                    println(e.message.toString())
+                }
             }
         }
         job1.join()
@@ -148,20 +159,31 @@ fun AccountPage(navController:NavHostController,authViewModel:AuthViewModel,anim
                                         style = MaterialTheme.typography.titleLarge,
                                         fontWeight = FontWeight.Bold
                                     )
-                                    Text(
-                                        "@${user.value?.login}",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = Color.Gray
-                                    )
-                                    GitCommAILButton(size = 122, text = "Sign Out", onClick = {
-                                        enableAlertDialog=true
-                                        alertDialogInfo= AlertDialogInfo( onConfirmationRequest = {navController.navigate(LoginPage.route) {
-                                            authViewModel.signOut()
-                                            popUpTo(0) {
-                                                inclusive = true
-                                            }
-                                        }}, confirmText = "Sign Out", dismissText = "Not Now", imageVector = Icons.AutoMirrored.Filled.ExitToApp, body = "Are you sure you want to Sign Out?")
-                                    })
+                                    user.value?.login?.let {
+                                        Text(
+                                            "@${user.value?.login}",
+
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color.Gray
+                                        )
+                                        GitCommAILButton(size = 122, text = "Sign Out", onClick = {
+                                            enableAlertDialog = true
+                                            alertDialogInfo = AlertDialogInfo(
+                                                onConfirmationRequest = {
+                                                    navController.navigate(LoginPage.route) {
+                                                        authViewModel.signOut(chatViewModel)
+                                                        popUpTo(0) {
+                                                            inclusive = true
+                                                        }
+                                                    }
+                                                },
+                                                confirmText = "Sign Out",
+                                                dismissText = "Not Now",
+                                                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                                                body = "Are you sure you want to Sign Out?"
+                                            )
+                                        })
+                                    }
                                 }
                             }
                         }

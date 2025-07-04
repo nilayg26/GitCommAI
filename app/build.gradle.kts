@@ -22,6 +22,9 @@ android {
         val properties= Properties()
         properties.load(project.rootProject.file("local.properties").inputStream())
         buildConfigField("String","newsApiKey", "\"${properties.getProperty("newsApiKey")}\"")
+        buildConfigField("String","privateKeys", "\"${properties.getProperty("privateKeys")}\"")
+        buildConfigField("String","publicKeys", "\"${properties.getProperty("publicKeys")}\"")
+        buildConfigField("String","rsaData", "\"${properties.getProperty("rsaData")}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

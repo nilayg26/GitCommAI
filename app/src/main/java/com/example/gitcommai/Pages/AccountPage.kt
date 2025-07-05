@@ -353,8 +353,7 @@ fun RepoItemCard(repo: ReposItem, enableAlertDialog :(Boolean, String)->Unit) {
             Spacer(modifier = Modifier.height(10.dp))
             Text(
                 text = "📅 Created: ${repo.created_at.substringBefore("T")}",
-                style = MaterialTheme.typography.bodySmall
-            )
+                style = MaterialTheme.typography.bodySmall)
             Text(
                 text = "🕘 Last Updated: ${repo.updated_at.substringBefore("T")}",
                 style = MaterialTheme.typography.bodySmall

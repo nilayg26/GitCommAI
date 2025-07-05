@@ -10,13 +10,15 @@ import com.google.ai.client.generativeai.GenerativeModel
 class AIViewModel(private val sharedPreferences: SharedPreferences) :State, ViewModel() {
     override val currentState: MutableState<String> = mutableStateOf("idle")
     private val apiKey= BuildConfig.apiKey
+    var greetResponse= mutableStateOf("")
+        private set
     private val generativeModel by lazy {
         GenerativeModel(modelName = "gemma-3n-e4b-it", apiKey = apiKey)
     }
     suspend fun getAIResponse(str:String):String{
         currentState.value=AIState.Loading
         return try {
-            val response= generativeModel.generateContent(prompt = "$str, use emojis in ur response").text.toString()
+            val response= generativeModel.generateContent(prompt = "$str, Keep all your responses concise and to the point, use emojis in ur response").text.toString()
             currentState.value= (AIState.Initalised)
             response
         }
@@ -33,13 +35,14 @@ class AIViewModel(private val sharedPreferences: SharedPreferences) :State, View
         return try {
             val response= generativeModel.generateContent(prompt = "User name is: $name, Please Greet him with a tech-motivated thought, For your future responses remember: Act as a tech-focused assistant, use emojis instead of markdown").text.toString()
             currentState.value= (AIState.Initalised)
-            response
+            println(response)
+           response
         }
         catch (e:Exception){
             AIState.Error =e.message.toString()
             currentState.value=AIState.Error
             println(AIState.Error)
-            "Something got wrong, Please retry!"
+           "Something got wrong, Please retry!"
         }
     }
     fun getAvatarUrl():String{

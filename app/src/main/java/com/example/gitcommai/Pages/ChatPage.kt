@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,7 +38,9 @@ import androidx.navigation.NavHostController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.gitcommai.ChatMessage
+import com.example.gitcommai.GitCommAIBottomBar
 import com.example.gitcommai.GitCommAIOutlinedTextField
+import com.example.gitcommai.GitCommAITopAppBar
 import com.example.gitcommai.ViewModels.AuthViewModel
 import com.example.gitcommai.ViewModels.ChatViewModel
 import com.example.gitcommai.ViewModels.LastMessage
@@ -66,20 +69,31 @@ fun ChatPage(navController: NavHostController, authViewModel: AuthViewModel, cha
     }
     LaunchedEffect(Unit) {
         adminUser = authViewModel.getUser()
-        if (adminUser?.login==null){
-            userLogin=""
-        }
-        else{
-            userLogin=adminUser.login
+        if (adminUser?.login == null) {
+            userLogin = ""
+        } else {
+            userLogin = adminUser.login
         }
     }
     val chatList by remember { derivedStateOf { chatViewModel.chatList } }
-    LaunchedEffect(Unit){
-        if (chatList.isEmpty()){
+    LaunchedEffect(Unit) {
+        if (chatList.isEmpty()) {
             chatViewModel.getChatRoomsSnapShot(userLogin)
         }
     }
-        Surface(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        Modifier.fillMaxSize(),
+        topBar = { GitCommAITopAppBar("GitChat") },
+        bottomBar = {
+            GitCommAIBottomBar(
+                navController = navController,
+                selectedIndex = 1
+            )
+        }) { paddingValues ->
+        Surface(
+            modifier = Modifier
+                .fillMaxSize().padding(paddingValues)
+        ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 GitCommAIOutlinedTextField(searchQuery) { searchQuery = it }
                 LazyColumn(modifier = Modifier.animateContentSize()) {
@@ -118,6 +132,7 @@ fun ChatPage(navController: NavHostController, authViewModel: AuthViewModel, cha
             }
         }
     }
+}
 
 
 @OptIn(ExperimentalGlideComposeApi::class)

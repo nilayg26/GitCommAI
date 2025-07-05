@@ -1,5 +1,6 @@
 package com.example.gitcommai
 import NewsPage
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -7,9 +8,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,6 +39,7 @@ import com.example.gitcommai.ViewModels.AuthViewModel
 import com.example.gitcommai.ViewModels.ChatViewModel
 import com.example.gitcommai.ViewModels.NewsViewModel
 import com.example.gitcommai.ui.theme.GitCommAITheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,6 +85,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             GitCommAITheme {
+                Surface(modifier = Modifier.background(MaterialTheme.colorScheme.background).fillMaxSize()) { }
                     Navigation(sharedPreferences,authViewModel,animationViewModel,newsViewModel,aiViewModel,chatViewModel)
             }
         }
@@ -87,6 +93,7 @@ class MainActivity : ComponentActivity() {
 }
 
 
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun Navigation(
     sharedPreferences: SharedPreferences,
@@ -96,38 +103,34 @@ fun Navigation(
     aiViewModel: AIViewModel,
     chatViewModel: ChatViewModel
 ) {
-    var topBarLabel by rememberSaveable {
-        mutableStateOf("")
-    }
-    var bottomBarIndex by rememberSaveable {
-        mutableIntStateOf(0)
-    }
+//    var topBarLabel by rememberSaveable {
+//        mutableStateOf("")
+//    }
+//    var bottomBarIndex by rememberSaveable {
+//        mutableIntStateOf(0)
+//    }
     val token= sharedPreferences.getString("access_token","")?:""
     val userId=sharedPreferences.getString("user_id","")?:""
     val user_name=sharedPreferences.getString("user_name","")?:""
     LaunchedEffect(Unit){
         if (userId.isNotBlank()) {
-            chatViewModel.getChatRoomsSnapShot(userId)
+            launch {
+                chatViewModel.getChatRoomsSnapShot(userId)
+            }
+
         }
     }
     val startPage by remember {
         mutableStateOf(if (token.isNotBlank()){NewsPage.route}else{LoginPage.route})
     }
     val navController = rememberNavController()
-    Scaffold(modifier = Modifier.fillMaxSize(), topBar = {if(topBarLabel.isNotBlank()){GitCommAITopAppBar(topBarLabel)}}, bottomBar = {if(bottomBarIndex!=-1) {GitCommAIBottomBar(navController = navController,bottomBarIndex)} }) { paddingValues ->
-        NavHost(modifier = Modifier.padding(paddingValues).fillMaxSize(),
+        NavHost(
             navController = navController, startDestination = startPage
         ) {
             composable(LoginPage.route) {
-                topBarLabel=""
-                bottomBarIndex=-1
                 LoginPage(navController, authViewModel, animationViewModel)
             }
             composable(NewsPage.route) {
-                topBarLabel= if (userId.isNotBlank()){
-                    "Hello ${user_name.split(" ")[0]}!"
-                } else{"Daily TechNews" }
-                bottomBarIndex=0
                 NewsPage(
                     navController,
                     newsViewModel = newsViewModel,
@@ -135,27 +138,16 @@ fun Navigation(
                 )
             }
             composable(ChatPage.route) {
-                topBarLabel="GitChat"
-                bottomBarIndex=1
                 ChatPage(navController, authViewModel, chatViewModel)
             }
             composable(AIPage.route) {
-                topBarLabel="GitCommAI"
-                bottomBarIndex=2
                 AIPage(navController, aiViewModel = aiViewModel)
             }
             composable(AccountPage.route) {
-                topBarLabel="Account"
-                bottomBarIndex=3
                 AccountPage(navController, authViewModel, animationViewModel,chatViewModel)
             }
             composable(ChatMessage.route) {
-                topBarLabel="Let's Chat"
-                bottomBarIndex=-1
-                ChatMessagePage(chatViewModel){
-                    topBarLabel=it
-                }
+                ChatMessagePage(chatViewModel){}
             }
         }
-    }
 }

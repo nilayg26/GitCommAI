@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,7 +48,9 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.gitcommai.AnimationLottie
 import com.example.gitcommai.GitCommAIAlertDialogue
+import com.example.gitcommai.GitCommAIBottomBar
 import com.example.gitcommai.GitCommAILButton
+import com.example.gitcommai.GitCommAITopAppBar
 import com.example.gitcommai.LoginPage
 import com.example.gitcommai.R
 import com.example.gitcommai.RepoClasses.ReposItem
@@ -75,8 +78,8 @@ fun AccountPage(
     chatViewModel: ChatViewModel
 ) {
     val context = LocalContext.current
-    var alertDialogInfo= remember {
-        AlertDialogInfo( onConfirmationRequest = {})
+    var alertDialogInfo = remember {
+        AlertDialogInfo(onConfirmationRequest = {})
     }
     val user = rememberSaveable {
         mutableStateOf<User?>(null)
@@ -87,38 +90,47 @@ fun AccountPage(
     var loadingAnimation by remember {
         mutableStateOf("")
     }
-    var isLoading by rememberSaveable{
+    var isLoading by rememberSaveable {
         mutableStateOf(true)
     }
-    var enableAlertDialog by remember{
+    var enableAlertDialog by remember {
         mutableStateOf(false)
     }
     LaunchedEffect(Unit) {
-        val job =launch {
+        val job = launch {
             if (loadingAnimation.isBlank()) {
                 loadingAnimation = animationViewModel.getData(key = "loading")
             }
         }
         job.join()
-        delay(250)
+        delay(50)
         val job1 = launch {
             user.value = authViewModel.getUser()
             if (repos.value.isEmpty()) {
                 try {
                     repos.value = authViewModel.getRepos()!!
-                }
-                catch (e:Exception){
+                } catch (e: Exception) {
                     println(e.message.toString())
                 }
             }
         }
         job1.join()
-        isLoading=false
+        isLoading = false
     }
-        Surface(modifier = Modifier
-            .fillMaxSize()) {
-            if (enableAlertDialog){
-                GitCommAIAlertDialogue(imageVector = alertDialogInfo.imageVector,body = alertDialogInfo.body,dismissText = alertDialogInfo.dismissText,confirmText = alertDialogInfo.confirmText,onDismissRequest = { enableAlertDialog=it }, onConfirm = alertDialogInfo.onConfirmationRequest)
+    Scaffold(Modifier.fillMaxSize(), topBar = { GitCommAITopAppBar("Account") }, bottomBar = { GitCommAIBottomBar(navController=navController, selectedIndex = 3) }) { paddingValues ->
+        Surface (
+            modifier = Modifier
+                .fillMaxSize().padding(paddingValues)
+        ) {
+            if (enableAlertDialog) {
+                GitCommAIAlertDialogue(
+                    imageVector = alertDialogInfo.imageVector,
+                    body = alertDialogInfo.body,
+                    dismissText = alertDialogInfo.dismissText,
+                    confirmText = alertDialogInfo.confirmText,
+                    onDismissRequest = { enableAlertDialog = it },
+                    onConfirm = alertDialogInfo.onConfirmationRequest
+                )
             }
             LazyColumn(
                 modifier = Modifier
@@ -215,8 +227,8 @@ fun AccountPage(
                             Box(
                                 modifier = Modifier
                                     .clickable {
-                                        enableAlertDialog=true
-                                        alertDialogInfo= AlertDialogInfo( onConfirmationRequest = {
+                                        enableAlertDialog = true
+                                        alertDialogInfo = AlertDialogInfo(onConfirmationRequest = {
                                             val intent =
                                                 Intent(
                                                     Intent.ACTION_VIEW,
@@ -243,22 +255,24 @@ fun AccountPage(
                         )
                     }
                     items(repos.value) { repo ->
-                        RepoItemCard(repo) {bool, url ->enableAlertDialog =bool  ;alertDialogInfo= AlertDialogInfo( onConfirmationRequest = {
-                            val intent =
-                                if (url.isBlank()) {
-                                    Intent(
-                                        Intent.ACTION_VIEW,
-                                        Uri.parse(repo.html_url)
-                                    )
-                                }
-                            else{
-                                Intent(
-                                    Intent.ACTION_VIEW,
-                                    Uri.parse(url)
-                                )
-                            }
-                            context.startActivity(intent)
-                        }) }
+                        RepoItemCard(repo) { bool, url ->
+                            enableAlertDialog = bool;alertDialogInfo =
+                            AlertDialogInfo(onConfirmationRequest = {
+                                val intent =
+                                    if (url.isBlank()) {
+                                        Intent(
+                                            Intent.ACTION_VIEW,
+                                            Uri.parse(repo.html_url)
+                                        )
+                                    } else {
+                                        Intent(
+                                            Intent.ACTION_VIEW,
+                                            Uri.parse(url)
+                                        )
+                                    }
+                                context.startActivity(intent)
+                            })
+                        }
                         Spacer(modifier = Modifier.height(12.dp))
                     }
                 } else {
@@ -272,6 +286,7 @@ fun AccountPage(
 
         }
     }
+}
 
 @Composable
 fun StatItem(label: String, count: Int) {
@@ -330,7 +345,7 @@ fun RepoItemCard(repo: ReposItem, enableAlertDialog :(Boolean, String)->Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                FeatureChip("Issues", repo.has_issues)
+                FeatureChip("Enable", !repo.disabled)
                 FeatureChip("Fork", repo.fork)
                 FeatureChip("Pages", repo.has_pages)
             }

@@ -89,6 +89,7 @@ class AuthViewModel(private var sharedPreferences: SharedPreferences) :MainModel
    fun login(activity: Activity){
         currentState.value="loading"
         val provider= OAuthProvider.newBuilder("github.com")
+        provider.scopes= listOf("repo")
            firebaseAuth.startActivityForSignInWithProvider(activity, provider.build())
                .addOnSuccessListener {
                    if (it != null) {

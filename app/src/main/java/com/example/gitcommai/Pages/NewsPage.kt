@@ -18,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +41,8 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.gitcommai.AnimationLottie
 import com.example.gitcommai.GitCommAIAlertDialogue
+import com.example.gitcommai.GitCommAIBottomBar
+import com.example.gitcommai.GitCommAITopAppBar
 import com.example.gitcommai.ViewModels.AnimationViewModel
 import com.example.gitcommai.ViewModels.NewsStatus
 import com.example.gitcommai.ViewModels.NewsViewModel
@@ -47,26 +50,26 @@ import kotlinx.coroutines.launch
 import org.example.gitcommai.NewsClasses.Article
 
 @Composable
-fun NewsPage(navController: NavHostController,newsViewModel: NewsViewModel, animationViewModel: AnimationViewModel){
-    var showNews by rememberSaveable{
+fun NewsPage(navController: NavHostController,newsViewModel: NewsViewModel, animationViewModel: AnimationViewModel) {
+    var showNews by rememberSaveable {
         mutableStateOf(false)
     }
-    var json by remember{
+    var json by remember {
         mutableStateOf("")
     }
-    LaunchedEffect(Unit){
+    LaunchedEffect(Unit) {
         launch {
-            json= animationViewModel.getData(key = "loading")
+            json = animationViewModel.getData(key = "loading")
         }
         launch {
             newsViewModel.getData()
         }
     }
-    val context= LocalContext.current
-    LaunchedEffect(newsViewModel.currentState.value){
-        when(newsViewModel.currentState.value) {
+    val context = LocalContext.current
+    LaunchedEffect(newsViewModel.currentState.value) {
+        when (newsViewModel.currentState.value) {
             NewsStatus.Initalised -> showNews = true
-            NewsStatus.Error-> showNews = true
+            NewsStatus.Error -> showNews = true
         }
     }
     var enableAlertDialog by remember {
@@ -75,33 +78,57 @@ fun NewsPage(navController: NavHostController,newsViewModel: NewsViewModel, anim
     var url by remember {
         mutableStateOf("")
     }
-   Surface(modifier = Modifier.fillMaxSize()) {
-       Column(
-           Modifier
-               .padding(16.dp)
-               .fillMaxSize(),
-           horizontalAlignment = Alignment.CenterHorizontally,
-           verticalArrangement = Arrangement.Center
-       ) { }
-       if (!showNews && json.isNotBlank()) {
-           AnimationLottie(jsonStr = json)
-       }
-       if (enableAlertDialog) {
-           GitCommAIAlertDialogue( imageVector = Icons.AutoMirrored.Filled.ExitToApp, body = "Want to read full Article? You will be redirected to Browser", dismissText = "Not Now", confirmText = "Go", onDismissRequest = {enableAlertDialog=it}, onConfirm = {val intent=Intent(Intent.ACTION_VIEW, Uri.parse(url));context.startActivity(intent)})
+    Scaffold(
+        Modifier.fillMaxSize(),
+        topBar = { GitCommAITopAppBar("Daily TechNews") },
+        bottomBar = {
+            GitCommAIBottomBar(
+                navController = navController,
+                selectedIndex = 0
+            )
+        }) { paddingValues ->
+        Surface(
+            modifier = Modifier
+                .fillMaxSize().padding(paddingValues)
+        ) {
+            Column(
+                Modifier
+                    .padding(16.dp)
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+            }
+                if (!showNews && json.isNotBlank()) {
+                    AnimationLottie(jsonStr = json)
+                }
+                if (enableAlertDialog) {
+                    GitCommAIAlertDialogue(
+                        imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                        body = "Want to read full Article? You will be redirected to Browser",
+                        dismissText = "Not Now",
+                        confirmText = "Go",
+                        onDismissRequest = { enableAlertDialog = it },
+                        onConfirm = {
+                            val intent =
+                                Intent(Intent.ACTION_VIEW, Uri.parse(url));context.startActivity(
+                            intent
+                        )
+                        })
 
-       }
-       if (newsViewModel.mainNews.value!=null) {
-           AnimatedVisibility(showNews) {
-               ArticleList(
-                   articles = newsViewModel.mainNews.value!!.articles,
-                   onArticleClick = { enableAlertDialog = true;url = it })
-           }
-       }
-       else if(showNews){
-           Text(" Could not fetch News at the moment 🥲, \"Check your internet and restart the app\"")
-       }
-   }
-    }
+                }
+                if (newsViewModel.mainNews.value != null) {
+                    AnimatedVisibility(showNews) {
+                        ArticleList(
+                            articles = newsViewModel.mainNews.value!!.articles,
+                            onArticleClick = { enableAlertDialog = true;url = it })
+                    }
+                } else if (showNews) {
+                    Text(" Could not fetch News at the moment 🥲, \"Check your internet and restart the app\"")
+                }
+            }
+        }
+}
 
 @Composable
 fun ArticleList(articles: List<Article>, onArticleClick: (String) -> Unit) {

@@ -28,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,6 +47,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.example.gitcommai.GitCommAIBottomBar
+import com.example.gitcommai.GitCommAITopAppBar
 import com.example.gitcommai.ViewModels.ChatMessage
 import com.example.gitcommai.ViewModels.ChatViewModel
 import com.example.gitcommai.ViewModels.User
@@ -78,53 +81,59 @@ fun ChatMessagePage(chatViewModel: ChatViewModel,onTitleChange: (String) -> Unit
             listState.animateScrollToItem(messagesList.size - 1)
         }
     }
-
-    Surface(modifier = Modifier.fillMaxSize()) {
-        Column(
+    Scaffold(Modifier.fillMaxSize(), topBar = { GitCommAITopAppBar(otherUser.login) }) { paddingValues ->
+        Surface(
             modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .fillMaxSize().padding(paddingValues)
         ) {
-            LazyColumn(
-                state = listState,
+            Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                contentPadding = PaddingValues(vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
             ) {
-                items(
-                    items = messagesList,
-                    key = { message -> message.time?.toDate()?.time ?: System.currentTimeMillis() }
-                ) { message ->
-                    ChatMessageItem(
-                        message = message,
-                        currentUserId = currentUserId,
-                        adminUser = adminUser,
-                        otherUser = otherUser,
-                        chatViewModel = chatViewModel
-                    )
-                }
-            }
-            MessageInputSection(
-                inputText = inputText,
-                onInputChange = { inputText = it },
-                isTyping = isTyping,
-                onSendMessage = {
-                    if (inputText.isNotBlank()) {
-                        chatViewModel.sendMessage(
-                            chatRoomId = currentChatRoomId,
-                            message = ChatMessage(
-                                text = chatViewModel.encodeMessage(inputText),
-                                sender = currentUserId,
-                                time = Timestamp.now()
-                            )
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    contentPadding = PaddingValues(vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(
+                        items = messagesList,
+                        key = { message ->
+                            message.time?.toDate()?.time ?: System.currentTimeMillis()
+                        }
+                    ) { message ->
+                        ChatMessageItem(
+                            message = message,
+                            currentUserId = currentUserId,
+                            adminUser = adminUser,
+                            otherUser = otherUser,
+                            chatViewModel = chatViewModel
                         )
-                        inputText = ""
                     }
                 }
-            )
+                MessageInputSection(
+                    inputText = inputText,
+                    onInputChange = { inputText = it },
+                    isTyping = isTyping,
+                    onSendMessage = {
+                        if (inputText.isNotBlank()) {
+                            chatViewModel.sendMessage(
+                                chatRoomId = currentChatRoomId,
+                                message = ChatMessage(
+                                    text = chatViewModel.encodeMessage(inputText),
+                                    sender = currentUserId,
+                                    time = Timestamp.now()
+                                )
+                            )
+                            inputText = ""
+                        }
+                    }
+                )
+            }
         }
     }
 }

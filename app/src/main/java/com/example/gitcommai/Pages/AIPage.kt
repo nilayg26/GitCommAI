@@ -36,6 +36,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,15 +50,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.example.gitcommai.GitCommAIBottomBar
+import com.example.gitcommai.GitCommAITopAppBar
 import com.example.gitcommai.R
+import com.example.gitcommai.ViewModels.AIState
 import com.example.gitcommai.ViewModels.AIViewModel
 import com.example.gitcommai.ViewModels.User
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 data class Message(
@@ -81,6 +88,7 @@ data class Message(
     }
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 @Composable
 fun AIPage(navController: NavHostController, aiViewModel: AIViewModel) {
     val listState = rememberLazyListState()
@@ -93,12 +101,16 @@ fun AIPage(navController: NavHostController, aiViewModel: AIViewModel) {
     var greetDone by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        if (!greetDone) {
-            isTyping = true
-            val greetResponse = aiViewModel.greetAI()
-            messages = messages + Message(text = greetResponse, isBot = true)
-            isTyping = false
-            greetDone = true
+        GlobalScope.launch {
+            if (!greetDone) {
+                isTyping = true
+                if (aiViewModel.currentState.value!=AIState.Loading && messages.isEmpty()) {
+                    val greetResponse = aiViewModel.greetAI()
+                    messages = messages + Message(text = greetResponse, isBot = true)
+                }
+                isTyping = false
+                greetDone = true
+            }
         }
     }
 
@@ -107,99 +119,101 @@ fun AIPage(navController: NavHostController, aiViewModel: AIViewModel) {
             listState.animateScrollToItem(messages.size - 1)
         }
     }
-    Surface(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        Column(
+    Scaffold(Modifier.fillMaxSize(), topBar = { GitCommAITopAppBar("GitCommAI") }, bottomBar = { GitCommAIBottomBar(navController=navController, selectedIndex = 2) }) { paddingValues ->
+        Surface(
             modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .fillMaxSize().padding(paddingValues)
         ) {
-            // Messages list
-            LazyColumn(
-                state = listState,
+            Column(
                 modifier = Modifier
-                    .weight(1f) // This is crucial - takes remaining space
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                contentPadding = PaddingValues(vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
             ) {
-                items(messages) { message ->
-                    MessageBubble(message = message,aiViewModel)
-                }
-                if (isTyping) {
-                    item {
-                        TypingIndicator()
+                // Messages list
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .weight(1f) // This is crucial - takes remaining space
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    contentPadding = PaddingValues(vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(messages) { message ->
+                        MessageBubble(message = message, aiViewModel)
+                    }
+                    if (isTyping) {
+                        item {
+                            TypingIndicator()
+                        }
                     }
                 }
-            }
 
-            // Input section at bottom
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shadowElevation = 8.dp,
-                color = MaterialTheme.colorScheme.surface
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.Bottom
+                // Input section at bottom
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shadowElevation = 8.dp,
+                    color = MaterialTheme.colorScheme.surface
                 ) {
-                    OutlinedTextField(
-                        value = inputText,
-                        onValueChange = { inputText = it },
+                    Row(
                         modifier = Modifier
-                            .weight(1f)
-                            .padding(end = 12.dp),
-                        placeholder = {
-                            Text("Type to Chat...")
-                        },
-                        shape = RoundedCornerShape(24.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                        )
-                    )
-                    AnimatedVisibility(!isTyping) {
-                        FloatingActionButton(
-                            onClick = {
-                                if (inputText.isNotBlank()) {
-                                    val userMessage = Message(
-                                        text = inputText.trim(),
-                                        isBot = false
-                                    )
-                                    messages = messages + userMessage
-                                    val userInput = inputText.trim()
-                                    inputText = ""
-                                    coroutineScope.launch {
-                                        isTyping = true
-                                        val botResponse = Message(
-                                            text = aiViewModel.getAIResponse(str = userInput),
-                                            isBot = true
-                                        )
-                                        isTyping = false
-                                        messages = messages + botResponse
-                                    }
-                                }
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        OutlinedTextField(
+                            value = inputText,
+                            onValueChange = { inputText = it },
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(end = 12.dp),
+                            placeholder = {
+                                Text("Type to Chat...")
                             },
-                            modifier = Modifier.size(48.dp),
-                            containerColor = if (inputText.isNotBlank())
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.surfaceVariant
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.Send,
-                                contentDescription = "Send",
-                                modifier = Modifier.size(20.dp),
-                                tint = if (inputText.isNotBlank())
-                                    MaterialTheme.colorScheme.onPrimary
-                                else
-                                    MaterialTheme.colorScheme.onSurfaceVariant
+                            shape = RoundedCornerShape(24.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline
                             )
+                        )
+                        AnimatedVisibility(!isTyping) {
+                            FloatingActionButton(
+                                onClick = {
+                                    if (inputText.isNotBlank()) {
+                                        val userMessage = Message(
+                                            text = inputText.trim(),
+                                            isBot = false
+                                        )
+                                        messages = messages + userMessage
+                                        val userInput = inputText.trim()
+                                        inputText = ""
+                                        coroutineScope.launch {
+                                            isTyping = true
+                                            val botResponse = Message(
+                                                text = aiViewModel.getAIResponse(str = userInput),
+                                                isBot = true
+                                            )
+                                            isTyping = false
+                                            messages = messages + botResponse
+                                        }
+                                    }
+                                },
+                                modifier = Modifier.size(48.dp),
+                                containerColor = if (inputText.isNotBlank())
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.surfaceVariant
+                            ) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.Send,
+                                    contentDescription = "Send",
+                                    modifier = Modifier.size(20.dp),
+                                    tint = if (inputText.isNotBlank())
+                                        MaterialTheme.colorScheme.onPrimary
+                                    else
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
@@ -225,10 +239,11 @@ fun MessageBubble(message: Message, aiViewModel: AIViewModel) {
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    Image(
-                        painter = painterResource(R.drawable.gitcommailogocompressed),
+                    GlideImage(
+                        model = "https://nilayg26.github.io/Animation/gitcommailogocompressed_11zon.jpg",
                         contentDescription = "AppLogo",
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
                     )
                 }
             }
@@ -287,6 +302,7 @@ fun MessageBubble(message: Message, aiViewModel: AIViewModel) {
         }
     }
 }
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun TypingIndicator() {
     Row(
@@ -301,10 +317,11 @@ fun TypingIndicator() {
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.fillMaxSize()
             ) {
-                Image(
-                    painter = painterResource(R.drawable.gitcommailogocompressed),
+                GlideImage(
+                    model = "https://nilayg26.github.io/Animation/gitcommailogocompressed_11zon.jpg",
                     contentDescription = "AppLogo",
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
                 )
             }
         }

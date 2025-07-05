@@ -135,11 +135,11 @@ fun GitCommAIBottomBar(navController: NavHostController, selectedIndex:Int) {
         BottomBarProps.list.forEachIndexed { idx, it ->
             NavigationBarItem(onClick = {
                 navController.navigate(BottomBarProps.list[idx]) {
-                    restoreState = true
-                    launchSingleTop = true
                     popUpTo(navController.graph.findStartDestination().id) {
                         saveState = true
                     }
+                    restoreState = true
+                    launchSingleTop = true
                 }
             }, selected = selectedIndex == idx, label = { }, icon = {
                 if (selectedIndex == idx) {

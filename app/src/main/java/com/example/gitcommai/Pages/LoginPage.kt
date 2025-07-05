@@ -55,6 +55,7 @@ fun LoginPage(
         }
     }
     LaunchedEffect(authViewModel.currentState.value , ChatViewModel.registrationState){
+        println("Helloooo")
         when(authViewModel.currentState.value){
             "access_token_retrieved" ,"registered" ->{navController.navigate(NewsPage.route){launchSingleTop=true;popUpTo(0){inclusive=true} }}
             "loading"->{isLoading=true}

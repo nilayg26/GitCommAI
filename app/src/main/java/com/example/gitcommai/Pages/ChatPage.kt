@@ -46,10 +46,13 @@ import com.example.gitcommai.ViewModels.ChatViewModel
 import com.example.gitcommai.ViewModels.LastMessage
 import com.example.gitcommai.ViewModels.User
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import java.text.SimpleDateFormat
 import java.util.Locale
+
 @Composable
 fun ChatPage(navController: NavHostController, authViewModel: AuthViewModel, chatViewModel: ChatViewModel) {
     var searchQuery by remember { mutableStateOf("") }
@@ -67,18 +70,22 @@ fun ChatPage(navController: NavHostController, authViewModel: AuthViewModel, cha
             searchResult = emptyList()
         }
     }
-    LaunchedEffect(Unit) {
-        adminUser = authViewModel.getUser()
-        if (adminUser?.login == null) {
-            userLogin = ""
-        } else {
-            userLogin = adminUser.login
-        }
-    }
     val chatList by remember { derivedStateOf { chatViewModel.chatList } }
     LaunchedEffect(Unit) {
-        if (chatList.isEmpty()) {
-            chatViewModel.getChatRoomsSnapShot(userLogin)
+        GlobalScope.launch {
+            withTimeout(5000) {
+                adminUser = authViewModel.getUser()
+                if (adminUser?.login == null) {
+                    userLogin = ""
+                } else {
+                    userLogin = adminUser.login
+                }
+            }
+        }
+        launch {
+            if (chatList.isEmpty()&&userLogin.isNotEmpty()) {
+                chatViewModel.getChatRoomsSnapShot(userLogin)
+            }
         }
     }
     Scaffold(

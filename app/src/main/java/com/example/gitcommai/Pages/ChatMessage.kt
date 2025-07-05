@@ -45,9 +45,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import com.example.gitcommai.GitCommAIBottomBar
 import com.example.gitcommai.GitCommAITopAppBar
 import com.example.gitcommai.ViewModels.ChatMessage
 import com.example.gitcommai.ViewModels.ChatViewModel
@@ -56,7 +56,7 @@ import com.google.firebase.Timestamp
 import kotlinx.coroutines.delay
 
 @Composable
-fun ChatMessagePage(chatViewModel: ChatViewModel,onTitleChange: (String) -> Unit) {
+fun ChatMessagePage(chatViewModel: ChatViewModel,navController: NavHostController) {
     val listState = rememberLazyListState()
     var inputText by remember { mutableStateOf("") }
     var isTyping by remember { mutableStateOf(false) }
@@ -65,9 +65,7 @@ fun ChatMessagePage(chatViewModel: ChatViewModel,onTitleChange: (String) -> Unit
     val currentUserId = remember { chatViewModel.getUserId() }
     val currentChatRoomId = remember { chatViewModel.getCurrentChatRoomId() }
     val messagesList by remember { derivedStateOf { chatViewModel.messagesList } }
-
     LaunchedEffect(Unit) {
-        println("Only called once")
         chatViewModel.getAllMessageSnapShot(currentChatRoomId)
         val adminId = chatViewModel.getUserId()
         val otherUserId = chatViewModel.getOtherUserId(currentChatRoomId)
@@ -75,13 +73,12 @@ fun ChatMessagePage(chatViewModel: ChatViewModel,onTitleChange: (String) -> Unit
         otherUser = chatViewModel.getUser(otherUserId) ?: User()
     }
     LaunchedEffect(messagesList.size) {
-        println("ChatList is $messagesList")
         if (messagesList.isNotEmpty()) {
             delay(500)
             listState.animateScrollToItem(messagesList.size - 1)
         }
     }
-    Scaffold(Modifier.fillMaxSize(), topBar = { GitCommAITopAppBar(otherUser.login) }) { paddingValues ->
+    Scaffold(Modifier.fillMaxSize(), topBar = { GitCommAITopAppBar(otherUser.login.ifBlank { "Chat" }, backButton = true){navController.popBackStack()} }) { paddingValues ->
         Surface(
             modifier = Modifier
                 .fillMaxSize().padding(paddingValues)

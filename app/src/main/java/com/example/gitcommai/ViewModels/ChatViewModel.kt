@@ -1,9 +1,7 @@
 package com.example.gitcommai.ViewModels
 import android.annotation.SuppressLint
 import android.content.SharedPreferences
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf

@@ -16,7 +16,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,7 +25,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.gitcommai.AccountPage
 import com.example.gitcommai.AnimationLottie
 import com.example.gitcommai.GitCommAILButton
 import com.example.gitcommai.NewsPage
@@ -55,9 +53,8 @@ fun LoginPage(
         }
     }
     LaunchedEffect(authViewModel.currentState.value , ChatViewModel.registrationState){
-        println("Helloooo")
         when(authViewModel.currentState.value){
-            "access_token_retrieved" ,"registered" ->{navController.navigate(NewsPage.route){launchSingleTop=true;popUpTo(0){inclusive=true} }}
+            "access_token_retrieved" ,"registered" ->{navController.navigate(NewsPage.route){launchSingleTop=true }}
             "loading"->{isLoading=true}
             "error"->{isLoading=false}
         }

@@ -50,6 +50,7 @@ android {
 }
 
 dependencies {
+    implementation (libs.text.recognition)
     implementation (libs.compose)
     implementation(libs.gson)
     implementation(libs.androidx.navigation.compose)

@@ -1,14 +1,17 @@
 package com.example.gitcommai.Pages
 
+import android.content.Context
+import android.graphics.Bitmap
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -51,7 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -62,6 +65,7 @@ import com.example.gitcommai.GitCommAITopAppBar
 import com.example.gitcommai.R
 import com.example.gitcommai.ViewModels.AIState
 import com.example.gitcommai.ViewModels.AIViewModel
+import com.example.gitcommai.ViewModels.TextRecognizer
 import com.example.gitcommai.ViewModels.User
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -88,18 +92,33 @@ data class Message(
     }
 }
 
-@OptIn(DelicateCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class, ExperimentalGlideComposeApi::class)
 @Composable
-fun AIPage(navController: NavHostController, aiViewModel: AIViewModel) {
+fun AIPage(
+    navController: NavHostController,
+    aiViewModel: AIViewModel,
+    textRecognizer: TextRecognizer
+) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-
+    val context= LocalContext.current
     var inputText by remember { mutableStateOf("") }
     var isTyping by remember { mutableStateOf(false) }
 
     var messages by rememberSaveable { mutableStateOf(emptyList<Message>()) }
     var greetDone by rememberSaveable { mutableStateOf(false) }
-
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) { bitmap: Bitmap? ->
+        bitmap?.let {
+            textRecognizer.getText(it){text->inputText=text}
+        }
+    }
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { textRecognizer.getText(it,context){text->inputText=text}}
+    }
     LaunchedEffect(Unit) {
         GlobalScope.launch {
             if (!greetDone) {
@@ -129,18 +148,17 @@ fun AIPage(navController: NavHostController, aiViewModel: AIViewModel) {
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
             ) {
-                // Messages list
                 LazyColumn(
                     state = listState,
                     modifier = Modifier
-                        .weight(1f) // This is crucial - takes remaining space
+                        .weight(1f)
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     contentPadding = PaddingValues(vertical = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(messages) { message ->
-                        MessageBubble(message = message, aiViewModel)
+                        MessageBubble(message = message, aiViewModel,context=context)
                     }
                     if (isTyping) {
                         item {
@@ -148,8 +166,35 @@ fun AIPage(navController: NavHostController, aiViewModel: AIViewModel) {
                         }
                     }
                 }
-
-                // Input section at bottom
+                Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.End){
+                    FloatingActionButton(
+                        onClick = {
+                            galleryLauncher.launch("image/*")
+                        },
+                        modifier = Modifier.padding(end = 16.dp).size(48.dp),
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    ) {
+                        GlideImage(
+                            model = context.getString(R.string.galleryIconUrl),
+                            contentDescription = "Gallery",
+                            modifier = Modifier.size(30.dp),
+                        )
+                    }
+                    FloatingActionButton(
+                        onClick = {
+                            cameraLauncher.launch(null)
+                            //galleryLauncher.launch("image/*")
+                        },
+                        modifier = Modifier.size(48.dp),
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    ) {
+                        GlideImage(
+                            model = context.getString(R.string.cameraIconUrl),
+                            contentDescription = "Camera",
+                            modifier = Modifier.size(30.dp),
+                        )
+                    }
+                }
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shadowElevation = 8.dp,
@@ -159,7 +204,7 @@ fun AIPage(navController: NavHostController, aiViewModel: AIViewModel) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
-                        verticalAlignment = Alignment.Bottom
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         OutlinedTextField(
                             value = inputText,
@@ -224,7 +269,7 @@ fun AIPage(navController: NavHostController, aiViewModel: AIViewModel) {
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun MessageBubble(message: Message, aiViewModel: AIViewModel) {
+fun MessageBubble(message: Message, aiViewModel: AIViewModel,context: Context) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (message.isBot) Arrangement.Start else Arrangement.End
@@ -240,7 +285,7 @@ fun MessageBubble(message: Message, aiViewModel: AIViewModel) {
                     modifier = Modifier.fillMaxSize()
                 ) {
                     GlideImage(
-                        model = "https://nilayg26.github.io/Animation/gitcommailogocompressed_11zon.jpg",
+                        model = context.getString(R.string.appLogoUrl),
                         contentDescription = "AppLogo",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop

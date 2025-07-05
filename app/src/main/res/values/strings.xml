@@ -2,4 +2,7 @@
     <string name="app_name">GitCommAI</string>
     <string name="url">https://nilayg26.github.io/Animation/</string>
     <string name="githubUrl">https://github.com/</string>
+    <string name="appLogoUrl">https://nilayg26.github.io/Animation/gitcommailogocompressed_11zon.jpg</string>
+    <string name="cameraIconUrl">https://nilayg26.github.io/Animation/iconscamera2.png</string>
+    <string name="galleryIconUrl">https://nilayg26.github.io/Animation/galleryIcon.png</string>
 </resources>

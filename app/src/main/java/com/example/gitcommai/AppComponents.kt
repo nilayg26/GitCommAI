@@ -1,6 +1,6 @@
 package com.example.gitcommai
 
-import androidx.compose.foundation.Image
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Info
@@ -22,18 +22,20 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +46,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 
 @Composable
 fun AnimationLottie(size: Int = 200, jsonStr:String = ""){
@@ -63,6 +66,7 @@ fun AnimationLottie(size: Int = 200, jsonStr:String = ""){
         modifier = Modifier.size(size.dp)
     )
 }
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun GitCommAILButton(
     enable: Boolean=true,
@@ -75,14 +79,6 @@ fun GitCommAILButton(
     if (!outline) {
         Button(enabled = enable,onClick = onClick, modifier = Modifier.width(size.dp)) {
             Text(text = text, fontWeight = FontWeight.Bold)
-            if (logo){
-                Image(modifier = Modifier
-                    .padding(start = 10.dp)
-                    .size(20.dp)
-                    .clip(CircleShape),
-                    painter = painterResource(R.drawable.github_logo)
-                 , contentDescription = "")
-            }
         }
     }
     else{
@@ -91,11 +87,34 @@ fun GitCommAILButton(
         }
     }
 }
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GitCommAITopAppBar(text:String){
-   Row(Modifier.padding(start = 16.dp).fillMaxWidth()) {Text(text, fontWeight = FontWeight.Bold, fontSize = 32.sp, modifier = Modifier.statusBarsPadding()) }
+fun GitCommAITopAppBar(text: String, backButton: Boolean = false,onBackButton:()->Unit={}){
+    Row(Modifier.padding(start = 16.dp).animateContentSize()) {
+        TopAppBar(scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(canScroll = {false}),
+            title = {
+                Text(text, fontWeight = FontWeight.Bold, fontSize = 32.sp, modifier = Modifier.statusBarsPadding())
+            },
+            navigationIcon = {
+                if (backButton) {
+                    IconButton(
+                        onClick = onBackButton,
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = "",
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                }
+            }
+        )
+    }
 }
+//@Composable
+//fun GitCommAITopAppBar(text:String){
+//   Row(Modifier.padding(start = 16.dp).animateContentSize()) {Text(text, fontWeight = FontWeight.Bold, fontSize = 32.sp, modifier = Modifier.statusBarsPadding()) }
+//}
 @Composable
 fun GitCommAIAlertDialogue( imageVector: ImageVector=Icons.Filled.Warning, body:String="",dismissText:String="Not Now",confirmText:String="Confirm",onDismissRequest: (Boolean) -> Unit, onConfirm: () -> Unit){
     AlertDialog(onDismissRequest = { onDismissRequest(false) },

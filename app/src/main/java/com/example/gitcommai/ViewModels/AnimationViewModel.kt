@@ -9,7 +9,7 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 
 class AnimationViewModel(private val sharedPreferences: SharedPreferences):MainModel() {
-    override val client: HttpClient = HttpClient(CIO)
+    override val client: HttpClient by lazy {  HttpClient(CIO)}
     override var currentState: MutableState<String> = mutableStateOf("")
     private val url="https://nilayg26.github.io/Animation/"
     val currentAnimation= mutableStateOf("")
@@ -23,9 +23,15 @@ class AnimationViewModel(private val sharedPreferences: SharedPreferences):MainM
             currentAnimation.value=str
         }
         if (str.isEmpty()) {
-            str = client.get(mainUrl).bodyAsText()
-            if(key=="login"){
-                currentAnimation.value=str
+            try {
+                str = client.get(mainUrl).bodyAsText()
+                if (key == "login") {
+                    currentAnimation.value = str
+                }
+            }
+            catch (e:Exception){
+                str=""
+                currentState.value="error"
             }
             sharedPreferences.edit().putString(key, str).apply()
         }

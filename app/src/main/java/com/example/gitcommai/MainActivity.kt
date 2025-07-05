@@ -10,18 +10,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -38,8 +33,9 @@ import com.example.gitcommai.ViewModels.AnimationViewModel
 import com.example.gitcommai.ViewModels.AuthViewModel
 import com.example.gitcommai.ViewModels.ChatViewModel
 import com.example.gitcommai.ViewModels.NewsViewModel
+import com.example.gitcommai.ViewModels.TextRecognizer
 import com.example.gitcommai.ui.theme.GitCommAITheme
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,12 +78,25 @@ class MainActivity : ComponentActivity() {
             }
         )
         val newsViewModel : NewsViewModel by viewModels<NewsViewModel>()
+        val textRecognizer by viewModels<TextRecognizer>()
         enableEdgeToEdge()
         setContent {
-            GitCommAITheme {
-                Surface(modifier = Modifier.background(MaterialTheme.colorScheme.background).fillMaxSize()) { }
-                    Navigation(sharedPreferences,authViewModel,animationViewModel,newsViewModel,aiViewModel,chatViewModel)
-            }
+                GitCommAITheme {
+                    Surface(
+                        modifier = Modifier.background(MaterialTheme.colorScheme.background)
+                            .fillMaxSize()
+                    ) { }
+                    Navigation(
+                        sharedPreferences,
+                        authViewModel,
+                        animationViewModel,
+                        newsViewModel,
+                        aiViewModel,
+                        chatViewModel,
+                        textRecognizer
+                    )
+                }
+
         }
     }
 }
@@ -101,23 +110,16 @@ fun Navigation(
     animationViewModel: AnimationViewModel,
     newsViewModel: NewsViewModel,
     aiViewModel: AIViewModel,
-    chatViewModel: ChatViewModel
+    chatViewModel: ChatViewModel,
+    textRecognizer: TextRecognizer
 ) {
-//    var topBarLabel by rememberSaveable {
-//        mutableStateOf("")
-//    }
-//    var bottomBarIndex by rememberSaveable {
-//        mutableIntStateOf(0)
-//    }
     val token= sharedPreferences.getString("access_token","")?:""
     val userId=sharedPreferences.getString("user_id","")?:""
-    val user_name=sharedPreferences.getString("user_name","")?:""
-    LaunchedEffect(Unit){
+    LaunchedEffect(Unit) {
         if (userId.isNotBlank()) {
-            launch {
+            withTimeout(10000) {
                 chatViewModel.getChatRoomsSnapShot(userId)
             }
-
         }
     }
     val startPage by remember {
@@ -141,13 +143,13 @@ fun Navigation(
                 ChatPage(navController, authViewModel, chatViewModel)
             }
             composable(AIPage.route) {
-                AIPage(navController, aiViewModel = aiViewModel)
+                AIPage(navController, aiViewModel = aiViewModel,textRecognizer)
             }
             composable(AccountPage.route) {
                 AccountPage(navController, authViewModel, animationViewModel,chatViewModel)
             }
             composable(ChatMessage.route) {
-                ChatMessagePage(chatViewModel){}
+                ChatMessagePage(chatViewModel,navController)
             }
         }
 }

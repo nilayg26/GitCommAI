@@ -81,7 +81,7 @@ class AuthViewModel(private var sharedPreferences: SharedPreferences) :MainModel
             }
         }
         catch (e:Exception){
-            println(e.message)
+            println("From get user:"+e.message)
             return User()
         }
     }
@@ -90,8 +90,10 @@ class AuthViewModel(private var sharedPreferences: SharedPreferences) :MainModel
         currentState.value="loading"
         val provider= OAuthProvider.newBuilder("github.com")
         provider.scopes= listOf("repo")
+       println("Login was started")
            firebaseAuth.startActivityForSignInWithProvider(activity, provider.build())
                .addOnSuccessListener {
+                   println("Reached completion")
                    if (it != null) {
                        val credential = it.credential as OAuthCredential
                        val token = credential.accessToken ?: ""
@@ -100,6 +102,7 @@ class AuthViewModel(private var sharedPreferences: SharedPreferences) :MainModel
                            try {
                                val userJson = getUser(token)
                                _user = gson.fromJson(userJson, User::class.java)
+                               println(_user)
                                ChatViewModel.checkOrRegisterUser(_user)
                                if (!_user.name.isNullOrBlank()) {
                                    sharedPreferences.edit().putString("user_name", _user.name)
@@ -119,9 +122,12 @@ class AuthViewModel(private var sharedPreferences: SharedPreferences) :MainModel
                            }
                        }
                    } else {
-                       println("GOT NULL")
+                       println("GOT NULL from LOGIN")
                        currentState.value = "error"
                    }
+               }.addOnFailureListener {
+                   println("Login failed Nilayyyy")
+                   currentState.value="error"
                }
 
     }

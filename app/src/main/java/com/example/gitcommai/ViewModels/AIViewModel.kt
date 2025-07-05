@@ -10,8 +10,6 @@ import com.google.ai.client.generativeai.GenerativeModel
 class AIViewModel(private val sharedPreferences: SharedPreferences) :State, ViewModel() {
     override val currentState: MutableState<String> = mutableStateOf("idle")
     private val apiKey= BuildConfig.apiKey
-    var greetResponse= mutableStateOf("")
-        private set
     private val generativeModel by lazy {
         GenerativeModel(modelName = "gemma-3n-e4b-it", apiKey = apiKey)
     }
@@ -35,7 +33,6 @@ class AIViewModel(private val sharedPreferences: SharedPreferences) :State, View
         return try {
             val response= generativeModel.generateContent(prompt = "User name is: $name, Please Greet him with a tech-motivated thought, For your future responses remember: Act as a tech-focused assistant, use emojis instead of markdown").text.toString()
             currentState.value= (AIState.Initalised)
-            println(response)
            response
         }
         catch (e:Exception){

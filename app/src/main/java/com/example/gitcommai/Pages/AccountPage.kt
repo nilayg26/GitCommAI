@@ -359,6 +359,10 @@ fun RepoItemCard(repo: ReposItem, enableAlertDialog :(Boolean, String)->Unit) {
                 text = "🕘 Last Updated: ${repo.updated_at.substringBefore("T")}",
                 style = MaterialTheme.typography.bodySmall
             )
+            Text(
+                text = "👨🏻‍💻 Owner: ${repo.owner.login}",
+                style = MaterialTheme.typography.bodySmall
+            )
 
             Spacer(modifier = Modifier.height(10.dp))
             Text(

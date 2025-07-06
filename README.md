@@ -31,14 +31,15 @@ Stay updated with handpicked daily tech news from the industry.
 📸 **AI Bot + Text Recognition (ML Kit)**  
 Seamlessly integrated into the AI chat page:  
 - 📷 Capture code from your laptop screen using the in-app camera  
-- 🖼️ Select screenshots or code snippets from your phone's gallery  
-- 🧠 Extracted text is **auto-pasted** into the AI prompt for instant AI interaction
+- 🖼️ Select screenshots or code snippets from your phone's gallery
+- ⭐️ Chat with AI Bot about code, tech or anything you want!
+- 🧠 Extracted text is **auto-pasted** into the keyboard for instant AI interaction
 
 👤 **GitHub Profile Integration**  
 Get a clean dashboard of your GitHub stats:  
 - Avatar, username, public repos  
 - Followers, following  
-- Repository details (name, description, URL, issues enabled, updated time, etc.)
+- Repository details (name, description, URL, issues enabled, updated time, etc.
 
 ## 📸 Some Screenshots
 
@@ -51,14 +52,13 @@ Get a clean dashboard of your GitHub stats:
 
 ## 🛠 Built With
 
-- **Jetpack Compose** – Modern declarative UI
-- **Kotlin** – Robust, safe, and elegant
-- **Firebase** – Authentication & Firestore (for Database) 
-- **RSA Encryption** – Custom Implementation for RSA
+- **Jetpack Compose & Kotlin** – Modern declarative UI
+- **Firebase** – Authentication & Database 
+- **RSA Encryption** – Custom Implementation for RSA for E2E chats
 - **Google ML Kit** – Text Recognition (Camera + Gallery)
 - **Gemma (Google)** – LLM-based AI responses
 - **GitHub REST API** – For user Auth & repo data
-
+- 
 ---
 
 ## 🚀 Getting Started

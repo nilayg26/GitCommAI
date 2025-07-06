@@ -50,17 +50,8 @@ Get a clean dashboard of your GitHub stats:
 ## 💬 End To End Encryption (RSA Based) 
 <img src="https://nilayg26.github.io/Animation/GitCommAISamplePics21.jpeg" width="500"/>
 
-## 🛠 Built With
 
-- **Jetpack Compose & Kotlin** – Modern declarative UI
-- **Firebase** – Authentication & Database 
-- **RSA Encryption** – Custom Implementation for RSA for E2E chats
-- **Google ML Kit** – Text Recognition (Camera + Gallery)
-- **Gemma (Google)** – LLM-based AI responses
-- **GitHub REST API** – For user Auth & repo data
----
-
-## 🚀 Getting Started
+## 🚀 Use it on your Android device!
 
 First release GitCommAI v1.0.0-alpha is out! Try Yourself!
    [Click to Download latest version of GitCommAI](https://nilayg26.github.io/Animation/gitcommailogocompressed_11zon.jpg)

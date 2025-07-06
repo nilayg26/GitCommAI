@@ -4,9 +4,9 @@
   <img src="https://nilayg26.github.io/Animation/gitcommailogocompressed_11zon.jpg" alt="GitCommAI Logo" width="300"/>
 </div>
 
-**Your AI-powered GitHub Companion**  
+**Your GitHub Companion**  
 Secure. Smart. Dev-focused.  
-An Android app that brings GitHub, AI, and chat together seamlessly.
+An Android app that brings TechNews, GitHub, AI, and secure chat together seamlessly under one roof.
 
 ---
 

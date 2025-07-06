@@ -13,10 +13,10 @@ An Android app that brings GitHub, AI, and chat together seamlessly.
 ## ✨ Features
 
 🔐 **GitHub OAuth Authentication**  
-Login securely using your GitHub account via Firebase integration.
+Login securely using your GitHub account.
 
 📰 **Daily Tech News Feed**  
-Stay updated with handpicked daily tech news from the industry.
+Stay updated with daily tech news from the industry.
 
 💬 **End-to-End RSA Encrypted Chat**  
 - Unique key pairs generated per chatroom  
@@ -24,15 +24,15 @@ Stay updated with handpicked daily tech news from the industry.
 - No server-side access to private keys
 
 🤖 **AI Assistant — GitCommAI (Gemma-powered)**  
-- Ask anything dev-related  
+- Ask anything tech-related  
 - Generate code snippets or debug issues  
 - Context-aware responses based on user input
 
 📸 **AI Bot + Text Recognition (ML Kit)**  
 Seamlessly integrated into the AI chat page:  
-- 📷 Capture code from your laptop screen using the in-app camera  
-- 🖼️ Select screenshots or code snippets from your phone's gallery
 - ⭐️ Chat with AI Bot about code, tech or anything you want!
+- 🖼️ Select screenshots or code snippets from your phone's gallery
+- 📷 Capture code from your laptop screen using the in-app camera  
 - 🧠 Extracted text is **auto-pasted** into the keyboard for instant AI interaction
 
 👤 **GitHub Profile Integration**  
@@ -58,7 +58,6 @@ Get a clean dashboard of your GitHub stats:
 - **Google ML Kit** – Text Recognition (Camera + Gallery)
 - **Gemma (Google)** – LLM-based AI responses
 - **GitHub REST API** – For user Auth & repo data
-- 
 ---
 
 ## 🚀 Getting Started

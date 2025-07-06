@@ -54,5 +54,5 @@ Get a clean dashboard of your GitHub stats:
 ## 🚀 Use it on your Android device!
 
 First release GitCommAI v1.0.0-alpha is out! Try Yourself!
-   [Click to Download latest version of GitCommAI](https://nilayg26.github.io/Animation/gitcommailogocompressed_11zon.jpg)
+   [Click to Download latest version of GitCommAI](https://github.com/nilayg26/GitCommAI/releases/download/v1.0.0-alpha/gitcommai-v1.0.0alpha.apk)
   

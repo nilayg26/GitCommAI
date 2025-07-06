@@ -1,5 +1,4 @@
 package com.example.gitcommai.Pages
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.animateContentSize
@@ -68,7 +67,6 @@ data class AlertDialogInfo(
     val confirmText: String="Go",
     val onConfirmationRequest: ()->Unit
 )
-@SuppressLint("MutableCollectionMutableState", "UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun AccountPage(
@@ -212,7 +210,7 @@ fun AccountPage(
                                     .fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceEvenly
                             ) {
-                                StatItem("Repos", user.value?.public_repos ?: 0)
+                                StatItem("Public Repos", user.value?.public_repos ?: 0)
                                 StatItem("Followers", user.value?.followers ?: 0)
                                 StatItem("Following", user.value?.following ?: 0)
                             }

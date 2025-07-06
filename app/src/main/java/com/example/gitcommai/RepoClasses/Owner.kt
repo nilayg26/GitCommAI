@@ -2,7 +2,13 @@ package com.example.gitcommai.RepoClasses
 
 import android.os.Parcel
 import android.os.Parcelable
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable
+@JsonIgnoreUnknownKeys
 data class Owner(
     val avatar_url: String,
     val events_url: String,

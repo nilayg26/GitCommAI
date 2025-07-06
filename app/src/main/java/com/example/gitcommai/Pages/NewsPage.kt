@@ -78,9 +78,12 @@ fun NewsPage(navController: NavHostController,newsViewModel: NewsViewModel, anim
     var url by remember {
         mutableStateOf("")
     }
+    val name by remember {
+        mutableStateOf(animationViewModel.getUserName())
+    }
     Scaffold(
         Modifier.fillMaxSize(),
-        topBar = { GitCommAITopAppBar("Daily TechNews") },
+        topBar = { GitCommAITopAppBar("Hello $name!") },
         bottomBar = {
             GitCommAIBottomBar(
                 navController = navController,

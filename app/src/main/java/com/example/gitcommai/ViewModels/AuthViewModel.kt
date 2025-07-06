@@ -9,18 +9,27 @@ import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
-import com.example.gitcommai.RepoClasses.Repos
+import com.example.gitcommai.RepoClasses.ReposItem
+import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.Tasks
+import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.OAuthCredential
 import com.google.firebase.auth.OAuthProvider
-import com.google.gson.Gson
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.launch
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable
+@JsonIgnoreUnknownKeys
 data class User(
     val login:String="",
     val html_url:String?=null,
@@ -69,14 +78,13 @@ class AuthViewModel(private var sharedPreferences: SharedPreferences) :MainModel
     }
     override val client:HttpClient by lazy {   HttpClient(CIO)}
     private var _user=User()
-    private val gson by lazy {  Gson()}
     suspend fun getUser():User{
         try {
             if (_user.login.isNotBlank()) {
                 return _user.copy()
             } else {
                 val token = sharedPreferences.getString("access_token", "") ?: ""
-                _user = gson.fromJson(getUser(token), User::class.java)
+                _user = Json.decodeFromString(getUser(token))
                 return _user
             }
         }
@@ -86,51 +94,58 @@ class AuthViewModel(private var sharedPreferences: SharedPreferences) :MainModel
         }
     }
    @SuppressLint("SuspiciousIndentation")
-   fun login(activity: Activity){
-        currentState.value="loading"
-        val provider= OAuthProvider.newBuilder("github.com")
-        provider.scopes= listOf("repo")
-       println("Login was started")
+   fun login(activity: Activity) {
+       currentState.value = "loading"
+       val provider = OAuthProvider.newBuilder("github.com")
+       provider.scopes = listOf("repo")
+
+       val pendingResultTask = firebaseAuth.pendingAuthResult
+       if (pendingResultTask != null) {
+           println("Found pending auth result")
+           handleLoginResult(pendingResultTask)
+       } else {
+           println("Login was started")
            firebaseAuth.startActivityForSignInWithProvider(activity, provider.build())
                .addOnSuccessListener {
-                   println("Reached completion")
-                   if (it != null) {
-                       val credential = it.credential as OAuthCredential
-                       val token = credential.accessToken ?: ""
-                       sharedPreferences.edit().putString("access_token", token).apply()
-                       viewModelScope.launch {
-                           try {
-                               val userJson = getUser(token)
-                               _user = gson.fromJson(userJson, User::class.java)
-                               println(_user)
-                               ChatViewModel.checkOrRegisterUser(_user)
-                               if (!_user.name.isNullOrBlank()) {
-                                   sharedPreferences.edit().putString("user_name", _user.name)
-                                       .apply()
-                               }
-                               else{
-                                   _user.name=_user.login
-                                   sharedPreferences.edit().putString("user_name", _user.login)
-                                       .apply()
-                               }
-                               sharedPreferences.edit().putString("user_id",_user.login).apply()
-                               sharedPreferences.edit().putString("user_avatar",_user.avatar_url).apply()
-                               currentState.value = "access_token_retrieved"
-                           } catch (e: Exception) {
-                               Log.e("GitHubUser", "Failed to fetch user", e)
-                               currentState.value = "error"
-                           }
-                       }
-                   } else {
-                       println("GOT NULL from LOGIN")
-                       currentState.value = "error"
-                   }
-               }.addOnFailureListener {
-                   println("Login failed Nilayyyy")
-                   currentState.value="error"
+                   handleLoginResult(Tasks.forResult(it))
                }
+               .addOnFailureListener {
+                   println("Login failed: ${it.message}")
+                   currentState.value = "error"
+               }
+       }
+   }
 
+    private fun handleLoginResult(resultTask: Task<AuthResult>) {
+        resultTask
+            .addOnSuccessListener {
+                println("Reached completion")
+                val credential = it.credential as? OAuthCredential
+                val token = credential?.accessToken ?: ""
+                sharedPreferences.edit().putString("access_token", token).apply()
+
+                viewModelScope.launch {
+                    try {
+                        val userJson = getUser(token)
+                        _user = Json.decodeFromString(userJson)
+                        ChatViewModel.checkOrRegisterUser(_user)
+                        val displayName = _user.name ?: _user.login
+                        sharedPreferences.edit().putString("user_name", displayName).apply()
+                        sharedPreferences.edit().putString("user_id", _user.login).apply()
+                        sharedPreferences.edit().putString("user_avatar", _user.avatar_url).apply()
+                        currentState.value = "access_token_retrieved"
+                    } catch (e: Exception) {
+                        Log.e("GitHubUser", "Failed to fetch user", e)
+                        currentState.value = "error"
+                    }
+                }
+            }
+            .addOnFailureListener {
+                println("Login failed (inside handler): ${it.message}")
+                currentState.value = "error"
+            }
     }
+
     private suspend fun getUser(token: String):String{
         return try {
             client.get("https://api.github.com/user"){
@@ -143,7 +158,7 @@ class AuthViewModel(private var sharedPreferences: SharedPreferences) :MainModel
             ""
         }
     }
-    suspend fun getRepos(): Repos? {
+    suspend fun getRepos(): List<ReposItem>? {
         repoState.value="loading"
         try {
             val json = _user.repos_url?.let {
@@ -161,7 +176,7 @@ class AuthViewModel(private var sharedPreferences: SharedPreferences) :MainModel
                 }.bodyAsText()
             } ?: ""
             repoState.value="retrieved"
-            return gson.fromJson(json, Repos::class.java)
+            return Json.decodeFromString<List<ReposItem>>(json)
         }
         catch (e:Exception){
             println(e.printStackTrace())

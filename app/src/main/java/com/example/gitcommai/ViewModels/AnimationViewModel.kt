@@ -38,4 +38,7 @@ class AnimationViewModel(private val sharedPreferences: SharedPreferences):MainM
         currentState.value="retrieved"
         return str
     }
+    fun getUserName():String{
+        return (sharedPreferences.getString("user_name","")?:"").split(" ")[0]
+    }
 }

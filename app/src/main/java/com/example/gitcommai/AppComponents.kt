@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -35,7 +36,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,6 +50,7 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 
 @Composable
 fun AnimationLottie(size: Int = 200, jsonStr:String = ""){
@@ -76,9 +80,16 @@ fun GitCommAILButton(
     logo: Boolean=false ,
     onClick: () -> Unit = {}
 ){
+    val context= LocalContext.current
     if (!outline) {
         Button(enabled = enable,onClick = onClick, modifier = Modifier.width(size.dp)) {
             Text(text = text, fontWeight = FontWeight.Bold)
+            if (logo){
+                GlideImage(modifier = Modifier
+                    .padding(start = 10.dp)
+                    .size(20.dp)
+                    .clip(CircleShape), model =context.getString(R.string.githubLogoUrl), contentDescription = "")
+            }
         }
     }
     else{
@@ -90,8 +101,8 @@ fun GitCommAILButton(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GitCommAITopAppBar(text: String, backButton: Boolean = false,onBackButton:()->Unit={}){
-    Row(Modifier.padding(start = 16.dp).animateContentSize()) {
-        TopAppBar(scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(canScroll = {false}),
+    Row(Modifier.padding(start = 16.dp)) {
+        TopAppBar(modifier = Modifier.animateContentSize(),scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(canScroll = {false}),
             title = {
                 Text(text, fontWeight = FontWeight.Bold, fontSize = 32.sp, modifier = Modifier.statusBarsPadding())
             },

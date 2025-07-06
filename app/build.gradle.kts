@@ -1,6 +1,7 @@
 import java.util.Properties
 
 plugins {
+    kotlin("plugin.serialization") version "2.0.0"
     id("com.google.devtools.ksp") version "2.0.21-1.0.27" apply false
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -27,9 +28,20 @@ android {
         buildConfigField("String","rsaData", "\"${properties.getProperty("rsaData")}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    signingConfigs {
+        create("release") {
+            storeFile = file("/Users/nilaygupta/release/keystores/gitcommairelease.jks")
+            storePassword = "android"
+            keyAlias = "gitcommairelease"
+            keyPassword = "android"
+        }
+    }
+
+
     buildTypes {
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -50,6 +62,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.kotlinx.serialization.json)
     implementation (libs.text.recognition)
     implementation (libs.compose)
     implementation(libs.gson)

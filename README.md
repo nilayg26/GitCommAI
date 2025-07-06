@@ -5,8 +5,8 @@
 </div>
 
 **Your GitHub Companion**  
-Secure. Smart. Dev-focused.  
-An Android app that brings TechNews, GitHub, AI, and secure chat together seamlessly under one roof.
+News, Chat, AI & GitHub — All Under One Roof
+An Android app that brings TechNews, GitHub, AI, and secure chat together seamlessly.
 
 ---
 

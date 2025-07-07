@@ -20,8 +20,8 @@ Stay updated with daily tech news from the industry.
 
 💬 **End-to-End RSA Encrypted Chat**  
 - Unique key pairs generated per chatroom  
-- Fully encrypted message flow  
-- No server-side access to private keys 
+- Each character in every word of a message is being encrypted.  
+- Private keys are produced inside the app and servers have no access to it.  
 
 📸 **GitCommAI (AI Chat Bot) + Text Recognition (Powered by Google's ML Kit)**  
 Seamlessly integrated into the AI chat page:  
@@ -32,7 +32,7 @@ Seamlessly integrated into the AI chat page:
 
 👤 **GitHub Profile Integration**  
 Get a clean dashboard of your GitHub stats:  
-- Avatar, username, public repos  
+- Avatar, username, public & private repos  
 - Followers, following  
 - Repository details (name, description, URL, issues enabled, updated time, etc.
 

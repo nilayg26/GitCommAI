@@ -21,14 +21,9 @@ Stay updated with daily tech news from the industry.
 💬 **End-to-End RSA Encrypted Chat**  
 - Unique key pairs generated per chatroom  
 - Fully encrypted message flow  
-- No server-side access to private keys
+- No server-side access to private keys 
 
-🤖 **AI Assistant — GitCommAI (Gemma-powered)**  
-- Ask anything tech-related  
-- Generate code snippets or debug issues  
-- Context-aware responses based on user input
-
-📸 **AI Bot + Text Recognition (ML Kit)**  
+📸 **GitCommAI (AI Chat Bot) + Text Recognition ( powered by Google's ML Kit)**  
 Seamlessly integrated into the AI chat page:  
 - ⭐️ Chat with AI Bot about code, tech or anything you want!
 - 🖼️ Select screenshots or code snippets from your phone's gallery

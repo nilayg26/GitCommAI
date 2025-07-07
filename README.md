@@ -23,7 +23,7 @@ Stay updated with daily tech news from the industry.
 - Fully encrypted message flow  
 - No server-side access to private keys 
 
-📸 **GitCommAI (AI Chat Bot) + Text Recognition ( powered by Google's ML Kit)**  
+📸 **GitCommAI (AI Chat Bot) + Text Recognition (Powered by Google's ML Kit)**  
 Seamlessly integrated into the AI chat page:  
 - ⭐️ Chat with AI Bot about code, tech or anything you want!
 - 🖼️ Select screenshots or code snippets from your phone's gallery

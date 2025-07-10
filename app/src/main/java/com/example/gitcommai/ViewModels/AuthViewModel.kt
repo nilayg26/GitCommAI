@@ -78,6 +78,19 @@ class AuthViewModel(private var sharedPreferences: SharedPreferences) :MainModel
     }
     override val client:HttpClient by lazy {   HttpClient(CIO)}
     private var _user=User()
+    companion object{
+        fun appAccessAllowed(onSet:(Boolean)->Unit){
+            ChatViewModel.firestore.collection("accessCollection").document("allow_v1.0.0-alpha").addSnapshotListener{
+                result ,_->
+                if (result != null) {
+                    if (result.exists()){
+                        val allow= result.data?.get("isAllowed") as Boolean
+                        onSet(allow)
+                    }
+                }
+            }
+        }
+    }
     suspend fun getUser():User{
         try {
             if (_user.login.isNotBlank()) {
@@ -190,5 +203,4 @@ class AuthViewModel(private var sharedPreferences: SharedPreferences) :MainModel
         firebaseAuth.signOut()
         currentState.value="signOut"
     }
-
 }

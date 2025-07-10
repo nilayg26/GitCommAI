@@ -37,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -206,4 +207,9 @@ fun GitCommAIOutlinedTextField(searchQuery:String,onValueChange: (String) -> Uni
         shape = RoundedCornerShape(50),
         singleLine = true
     )
+}
+@Composable
+fun DisableText(){
+    val context= LocalContext.current
+    Text(context.getString(R.string.disableText), color = Color.Red, modifier = Modifier.statusBarsPadding().padding(20.dp))
 }

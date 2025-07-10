@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -17,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -115,7 +117,11 @@ fun Navigation(
 ) {
     val token= sharedPreferences.getString("access_token","")?:""
     val userId=sharedPreferences.getString("user_id","")?:""
+    var allow by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) {
+        AuthViewModel.appAccessAllowed{
+            allow=it
+        }
         if (userId.isNotBlank()) {
             withTimeout(10000) {
                 chatViewModel.getChatRoomsSnapShot(userId)
@@ -126,6 +132,7 @@ fun Navigation(
         mutableStateOf(if (token.isNotBlank()){NewsPage.route}else{LoginPage.route})
     }
     val navController = rememberNavController()
+    if (allow) {
         NavHost(
             navController = navController, startDestination = startPage
         ) {
@@ -143,13 +150,19 @@ fun Navigation(
                 ChatPage(navController, authViewModel, chatViewModel)
             }
             composable(AIPage.route) {
-                AIPage(navController, aiViewModel = aiViewModel,textRecognizer)
+                AIPage(navController, aiViewModel = aiViewModel, textRecognizer)
             }
             composable(AccountPage.route) {
-                AccountPage(navController, authViewModel, animationViewModel,chatViewModel)
+                AccountPage(navController, authViewModel, animationViewModel, chatViewModel)
             }
             composable(ChatMessage.route) {
-                ChatMessagePage(chatViewModel,navController)
+                ChatMessagePage(chatViewModel, navController)
             }
         }
+    }
+    else{
+        SelectionContainer {
+            DisableText()
+        }
+    }
 }

@@ -7,4 +7,8 @@
     <string name="githubLogoUrl">https://nilayg26.github.io/Animation/github.png</string>
     <string name="galleryIconUrl">https://nilayg26.github.io/Animation/galleryIcon.png</string>
     <string name="aiPageAlertDialogue">Detect and auto paste text from images. Continue?</string>
+    <string name="disableText">This version has been disabled, Kindly visit:
+        https://github.com/nilayg26/GitCommAI/releases/
+        to download latest version</string>
+
 </resources>

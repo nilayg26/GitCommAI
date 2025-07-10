@@ -82,7 +82,7 @@ class ChatViewModel(private val sharedPreferences: SharedPreferences):State,View
                 }
             )
         }
-        private val firestore by lazy {
+        val firestore by lazy {
             FirebaseFirestore.getInstance()
         }
         var registrationState: MutableState<String> = mutableStateOf("notRegistered")

@@ -1,4 +1,5 @@
 package com.example.gitcommai.Pages
+import android.annotation.SuppressLint
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -248,7 +249,8 @@ fun ChatListItem(
     }
 }
 
-private val timestampFormatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
+@SuppressLint("ConstantLocale")
+private val timestampFormatter = SimpleDateFormat("hh:mm a, MMM d", Locale.getDefault())
 
 fun formatTimestamp(timestamp: Timestamp?): String {
     return timestamp?.let { timestampFormatter.format(it.toDate()) } ?: ""

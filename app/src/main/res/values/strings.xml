@@ -6,4 +6,5 @@
     <string name="cameraIconUrl">https://nilayg26.github.io/Animation/iconscamera2.png</string>
     <string name="githubLogoUrl">https://nilayg26.github.io/Animation/github.png</string>
     <string name="galleryIconUrl">https://nilayg26.github.io/Animation/galleryIcon.png</string>
+    <string name="aiPageAlertDialogue">Detect and auto paste text from images. Continue?</string>
 </resources>

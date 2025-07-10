@@ -122,10 +122,6 @@ fun GitCommAITopAppBar(text: String, backButton: Boolean = false,onBackButton:()
         )
     }
 }
-//@Composable
-//fun GitCommAITopAppBar(text:String){
-//   Row(Modifier.padding(start = 16.dp).animateContentSize()) {Text(text, fontWeight = FontWeight.Bold, fontSize = 32.sp, modifier = Modifier.statusBarsPadding()) }
-//}
 @Composable
 fun GitCommAIAlertDialogue( imageVector: ImageVector=Icons.Filled.Warning, body:String="",dismissText:String="Not Now",confirmText:String="Confirm",onDismissRequest: (Boolean) -> Unit, onConfirm: () -> Unit){
     AlertDialog(onDismissRequest = { onDismissRequest(false) },

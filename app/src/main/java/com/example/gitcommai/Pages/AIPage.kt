@@ -12,6 +12,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,6 +35,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -60,6 +62,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.example.gitcommai.GitCommAIAlertDialogue
 import com.example.gitcommai.GitCommAIBottomBar
 import com.example.gitcommai.GitCommAITopAppBar
 import com.example.gitcommai.R
@@ -99,12 +102,17 @@ fun AIPage(
     aiViewModel: AIViewModel,
     textRecognizer: TextRecognizer
 ) {
+    var alertDialogInfo = remember {
+        AlertDialogInfo(onConfirmationRequest = {})
+    }
+    var enableAlertDialog by remember {
+        mutableStateOf(false)
+    }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val context= LocalContext.current
     var inputText by remember { mutableStateOf("") }
     var isTyping by remember { mutableStateOf(false) }
-
     var messages by rememberSaveable { mutableStateOf(emptyList<Message>()) }
     var greetDone by rememberSaveable { mutableStateOf(false) }
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -117,7 +125,7 @@ fun AIPage(
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
-        uri?.let { textRecognizer.getText(it,context){text->inputText=text}}
+        uri?.let { textRecognizer.getText(it, context) { text -> inputText = text } }
     }
     LaunchedEffect(Unit) {
         GlobalScope.launch {
@@ -143,6 +151,15 @@ fun AIPage(
             modifier = Modifier
                 .fillMaxSize().padding(paddingValues)
         ) {
+            if (enableAlertDialog){
+                GitCommAIAlertDialogue(
+                    imageVector = alertDialogInfo.imageVector,
+                    body = alertDialogInfo.body,
+                    onDismissRequest = { enableAlertDialog = false }
+                ) {
+                   alertDialogInfo.onConfirmationRequest()
+                }
+            }
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -169,7 +186,8 @@ fun AIPage(
                 Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.End){
                     FloatingActionButton(
                         onClick = {
-                            galleryLauncher.launch("image/*")
+                            alertDialogInfo= AlertDialogInfo(imageVector = Icons.Filled.Info, body = context.getString(R.string.aiPageAlertDialogue), onConfirmationRequest = { galleryLauncher.launch("image/*")}, confirmText = "Continue", dismissText = "Not Now")
+                            enableAlertDialog=true
                         },
                         modifier = Modifier.padding(end = 16.dp).size(48.dp),
                         containerColor = MaterialTheme.colorScheme.secondary
@@ -182,8 +200,9 @@ fun AIPage(
                     }
                     FloatingActionButton(
                         onClick = {
-                            cameraLauncher.launch(null)
-                            //galleryLauncher.launch("image/*")
+                            alertDialogInfo= AlertDialogInfo(imageVector = Icons.Filled.Info, body = context.getString(R.string.aiPageAlertDialogue), onConfirmationRequest = {  cameraLauncher.launch(null)}, confirmText = "Continue", dismissText = "Not Now")
+                            enableAlertDialog=true
+                         //   cameraLauncher.launch(null)
                         },
                         modifier = Modifier.size(48.dp),
                         containerColor = MaterialTheme.colorScheme.secondary

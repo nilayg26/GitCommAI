@@ -60,8 +60,6 @@ fun ChatPage(navController: NavHostController, authViewModel: AuthViewModel, cha
     var adminUser by rememberSaveable { mutableStateOf(User()) }
     var userLogin by rememberSaveable { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
-
-    // Debounce search to avoid excessive API calls
     LaunchedEffect(searchQuery) {
         if (searchQuery.isNotBlank()) {
             delay(300) // 300ms debounce
@@ -81,7 +79,7 @@ fun ChatPage(navController: NavHostController, authViewModel: AuthViewModel, cha
                     userLogin = adminUser.login
                 }
             }
-        }
+        }.join()
         launch {
             if (chatList.isEmpty()&&userLogin.isNotEmpty()) {
                 chatViewModel.getChatRoomsSnapShot(userLogin)

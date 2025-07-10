@@ -71,7 +71,6 @@ class ChatViewModel(private val sharedPreferences: SharedPreferences):State,View
           val sum= chatRoomId.fold(0) { acc, char ->
               acc + char.code
           }
-            println(sum)
             val privateKey= privateKeys[sum%privateKeys.size].toInt()
             val publicKey= publicKeys[sum%publicKeys.size].toInt()
             val rsaValues= BuildConfig.rsaData.split(" ")

@@ -1,6 +1,7 @@
 package com.example.gitcommai.Pages
 
 import android.app.Activity
+import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Column
@@ -22,11 +23,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.gitcommai.AnimationLottie
 import com.example.gitcommai.GitCommAILButton
+import com.example.gitcommai.LoginPage
 import com.example.gitcommai.NewsPage
 import com.example.gitcommai.ViewModels.AnimationViewModel
 import com.example.gitcommai.ViewModels.AuthViewModel
@@ -69,11 +73,14 @@ fun LoginPage(
                             "GitCommAI\n",
                             textAlign = TextAlign.Center,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 38.sp
+                            fontSize = 40.sp
                         )
-                        Text(
-                            "Chat, Code, Connect - Smarter with AI", textAlign = TextAlign.Center
-                        )
+                    Text(
+                        text = "News, Chat, AI & GitHub\nAll Under One Roof",
+                        textAlign = TextAlign.Center,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
                         Spacer(Modifier.height(70.dp))
                         GitCommAILButton(text = "Continue with", logo = true, enable = !isLoading) {
                             coroutineScope.launch {
@@ -83,3 +90,9 @@ fun LoginPage(
                 }
             }
         }
+
+//@Preview(showBackground = true)
+//@Composable
+//fun LoginPagePreview(){
+//    LoginPage()
+//}

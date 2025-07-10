@@ -16,6 +16,9 @@ class TextRecognizer:ViewModel() {
             if (text.text.isNotBlank()){
                 onTextDetected(text.text)
             }
+            else{
+                onTextDetected("**Could not detect any text**")
+            }
         }
     }
     fun getText(uri: Uri,context: Context,onTextDetected:(String)->Unit){
@@ -23,6 +26,9 @@ class TextRecognizer:ViewModel() {
         recognizer.process(image).addOnSuccessListener { text->
             if (text.text.isNotBlank()){
                   onTextDetected(text.text)
+            }
+            else{
+                onTextDetected("**Could not detect any text**")
             }
         }
     }

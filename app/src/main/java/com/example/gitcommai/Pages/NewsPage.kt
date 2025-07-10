@@ -127,6 +127,7 @@ fun NewsPage(navController: NavHostController,newsViewModel: NewsViewModel, anim
                             onArticleClick = { enableAlertDialog = true;url = it })
                     }
                 } else if (showNews) {
+                    AnimationLottie(jsonStr = json)
                     Text(" Could not fetch News at the moment 🥲, \"Check your internet and restart the app\"")
                 }
             }

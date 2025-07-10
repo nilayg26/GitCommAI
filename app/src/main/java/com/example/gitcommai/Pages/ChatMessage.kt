@@ -66,7 +66,12 @@ fun ChatMessagePage(chatViewModel: ChatViewModel,navController: NavHostControlle
     val currentChatRoomId = remember { chatViewModel.getCurrentChatRoomId() }
     val messagesList by remember { derivedStateOf { chatViewModel.messagesList } }
     LaunchedEffect(Unit) {
-        chatViewModel.getAllMessageSnapShot(currentChatRoomId)
+        if (currentChatRoomId.isNotBlank()) {
+            chatViewModel.getAllMessageSnapShot(currentChatRoomId)
+        }
+        else{
+            navController.popBackStack()
+        }
         val adminId = chatViewModel.getUserId()
         val otherUserId = chatViewModel.getOtherUserId(currentChatRoomId)
         adminUser = chatViewModel.getUser(adminId) ?: User()

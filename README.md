@@ -11,6 +11,8 @@ An Android app that brings TechNews, GitHub, AI, and secure chat together seamle
 ---
 
 ## ✨ Features
+📱 **Modern User Interface**
+The UI is modern, supports both Dark and Light modes, and features thoughtfully placed animations.
 
 🔐 **GitHub OAuth Authentication**  
 Login securely using your GitHub account.
@@ -38,9 +40,18 @@ Get a clean dashboard of your GitHub stats:
 
 ## 📸 Some Screenshots
 
-| Tech News Feed | GitChat | Chat Message | GitCommAI (AI Bot) | GitHub Profile | Login | Loading Screen |
-|----------------|---------|---------------|---------------------|----------------|----------------|----------------|
-| <img src="https://nilayg26.github.io/Animation/GitCommAISamplePics20.jpeg" width="200"/> | <img src="https://nilayg26.github.io/Animation/GitCommAISamplePics14.jpeg" width="200"/> | <img src="https://nilayg26.github.io/Animation/GitCommAISamplePics17.jpeg" width="200"/> | <img src="https://nilayg26.github.io/Animation/GitCommAISamplePics10.jpeg" width="200"/> | <img src="https://nilayg26.github.io/Animation/GitCommAISamplePics07.jpeg" width="200"/> | <img src="https://nilayg26.github.io/Animation/GitCommAISamplePics01.jpeg" width="200"/> | <img src="https://nilayg26.github.io/Animation/GitCommAISamplePics02.jpeg" width="200"/> |
+| Login | Tech News Feed | GitChat |
+|--------|----------------|---------|
+| <img src="https://nilayg26.github.io/Animation/GitCommAISamplePics01.jpeg" width="200"/> | <img src="https://nilayg26.github.io/Animation/GitCommAISamplePics20.jpeg" width="200"/> | <img src="https://nilayg26.github.io/Animation/GitCommAISamplePics14.jpeg" width="200"/> |
+
+| Chat Message | GitCommAI (AI Bot) | GitHub Profile |
+|---------------|---------------------|----------------|
+| <img src="https://nilayg26.github.io/Animation/GitCommAISamplePics17.jpeg" width="200"/> | <img src="https://nilayg26.github.io/Animation/GitCommAISamplePics10.jpeg" width="200"/> | <img src="https://nilayg26.github.io/Animation/GitCommAISamplePics07.jpeg" width="200"/> |
+
+| Loading Screen | Account Page Direction | News Page Direction |
+|----------------|----------------|----------------|
+| <img src="https://nilayg26.github.io/Animation/GitCommAISamplePics02.jpeg" width="200"/> | <img src="https://nilayg26.github.io/Animation/GitCommAISamplePics25.jpeg" width="200"/> | <img src="https://nilayg26.github.io/Animation/GitCommAISamplePics26.jpeg" width="200"/> |
+
 
 
 ## 💬 End To End Encryption (RSA Based) 

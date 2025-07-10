@@ -28,8 +28,8 @@ Stay updated with daily tech news from the industry.
 📸 **GitCommAI (AI Chat Bot) + Text Recognition (Powered by Google's ML Kit)**  
 Seamlessly integrated into the AI chat page:  
 - ⭐️ Chat with AI Bot about code, tech or anything you want!
-- 🖼️ Select screenshots or code snippets from your phone's gallery
-- 📷 Capture code from your laptop screen using the in-app camera  
+- 📸 Detects text from Live Captured Photo or from a pic in your Gallery
+- 🔎 Detected text is Auto-Pasted to your Prompt Text field for instant AI interaction 
 - 🧠 Extracted text is **auto-pasted** into the keyboard for instant AI interaction
 
 👤 **GitHub Profile Integration**  

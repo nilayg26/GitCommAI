@@ -10,6 +10,46 @@ An Android app that brings TechNews, GitHub, AI, and secure chat together seamle
 
 ---
 
+## 🚀 How did I do it?
+
+* 🔐 **GitHub OAuth Integration**
+  Implemented `GitHub OAuth` using `Firebase` to authenticate users. Successfully linked and extracted user GitHub profile data including public & private repos within the app.
+
+* 🤖 **AI Chatbot with Text Recognition**
+  Built a fully responsive `AI Chatbot` using `Google's AI Studio`, integrated with `Google ML Kit’s Text Recognition v2 API` for extracting text from images (supports both live camera input and gallery images).
+
+* 💬 **End-to-End Encrypted Chat**
+  Developed a complete `e2e encrypted chat system`:
+
+  * User `search`, `selection`, and `chat`
+  * Used `RSA encryption` with preselected prime numbers
+  * On-device generated `private-public key pairs` uniquely tied to each `chatroom ID` (never stored or exposed to the server)
+  * All `encrypted messages` are securely stored in `Firebase Firestore`.
+
+* 🎨 **Smooth, Stateful UI with Lottie**
+  Created a responsive, `stateful` & `state-aware UI` using `Jetpack Compose`.
+  Integrated `Lottie animations` fetched from personally hosted `GitHub Pages`, then saved to device `ROM` using `SharedPreferences` to minimize mobile data usage.
+
+* ✅ **Live and Fully Functional**
+  The app is `live`, fully `hosted`, and completely `usable`.
+
+---
+
+
+## 🌟 Potential Impact
+
+This app is designed to **streamline the developer workflow** by seamlessly integrating multiple powerful features:
+
+* 🔗 `GitHub OAuth` for repository tracking and profile linking
+* 🤖 `AI Chat Bot` for instant assistance and query resolution
+* 🧠 `Text Recognition` to extract code or content from images effortlessly
+* 📰 `Tech News` to keep developers updated with the latest trends
+* 🔐 `Secure Chat` for encrypted communication and collaboration
+
+Together, these features **empower developers to code, collaborate, and learn more efficiently**—all within a single, unified platform.
+
+---
+
 ## ✨ Features
 📱 **Modern User Interface**
 The UI is modern, supports both Dark and Light modes, and features thoughtfully placed animations.
@@ -35,7 +75,7 @@ Seamlessly integrated into the AI chat page:
 Get a clean dashboard of your GitHub stats:  
 - Avatar, username, public & private repos  
 - Followers, following  
-- Repository details (name, description, URL, issues enabled, updated time, etc.
+- Repository details (name, description, URL, issues enabled, updated time, etc).
 
 ## 📸 Some Screenshots
 

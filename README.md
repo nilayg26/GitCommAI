@@ -27,7 +27,7 @@ An Android app that brings TechNews, GitHub, AI, and secure chat together seamle
   * All `encrypted messages` are securely stored in `Firebase Firestore`.
 
 * 🎨 **Smooth, Stateful UI with Lottie**
-  Created a responsive, `stateful` & `state-aware UI` using `Jetpack Compose`.
+  Created a responsive, `stateful` & `state-aware UI` using `Jetpack Compose` integrated with sophisticated `ViewModels` to provide robust backend integration.
   Integrated `Lottie animations` fetched from personally hosted `GitHub Pages`, then saved to device `ROM` using `SharedPreferences` to minimize mobile data usage.
 
 * ✅ **Live and Fully Functional**

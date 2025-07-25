@@ -33,6 +33,9 @@ An Android app that brings TechNews, GitHub, AI, and secure chat together seamle
 * ✅ **Live and Fully Functional**
   The app is `live`, fully `hosted`, and completely `usable`.
 
+  ## 💬 End To End Encryption (RSA Based) 
+<img src="https://nilayg26.github.io/Animation/GitCommAISamplePics21.jpeg" width="500"/>
+
 ---
 
 
@@ -93,8 +96,7 @@ Get a clean dashboard of your GitHub stats:
 
 
 
-## 💬 End To End Encryption (RSA Based) 
-<img src="https://nilayg26.github.io/Animation/GitCommAISamplePics21.jpeg" width="500"/>
+
 
 
 ## 🚀 Use it on your Android device!

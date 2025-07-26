@@ -29,6 +29,8 @@ An Android app that brings TechNews, GitHub, AI, and secure chat together seamle
 * 🎨 **Smooth, Stateful UI with Lottie**
   Created a responsive, `stateful` & `state-aware UI` using `Jetpack Compose` integrated with sophisticated `ViewModels` to provide robust backend integration.
   Integrated `Lottie animations` fetched from personally hosted `GitHub Pages`, then saved to device `ROM` using `SharedPreferences` to minimize mobile data usage.
+* 📰 **Tech News Feed**
+  Fetched daily tech news feed from `GitHub Pages` using `Ktor`.
 
 * ✅ **Live and Fully Functional**
   The app is `live`, fully `hosted`, and completely `usable`.

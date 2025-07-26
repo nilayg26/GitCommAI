@@ -38,6 +38,10 @@ An Android app that brings TechNews, GitHub, AI, and secure chat together seamle
   ## 💬 End To End Encryption (RSA Based) 
 <img src="https://nilayg26.github.io/Animation/GitCommAISamplePics21.jpeg" width="500"/>
 
+
+## 🚀 What Major Technologies I Used?  
+`Kotlin`, `Jetpack Compose`, `Firebase`, `Firestore`, `Google AI Studio`, `RSA Encryption`, `MVVM`, `GitHub OAuth`, `Room`, `Lottie Animations`, `Google’s ML Kit`
+
 ---
 
 

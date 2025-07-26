@@ -40,7 +40,7 @@ An Android app that brings TechNews, GitHub, AI, and secure chat together seamle
 
 
 ## 🚀 What Major Technologies & Concepts I Used?  
-`Kotlin`, `Jetpack Compose`, `Firebase`, `Firestore`, `Google AI Studio`, `RSA Encryption`, `MVVM`, `GitHub OAuth`, `Firebase Authentication`, `Lottie Animations`, `Google’s ML Kit`
+`Kotlin`, `Jetpack Compose`, `Firebase`, `Firestore`, `Google AI Studio`, `RSA Encryption`, `MVVM`, `GitHub OAuth`, `Firebase Authentication`, `Lottie Animations`, `Google’s ML Kit`, `Glide Image Loading Library`
 
 ---
 
